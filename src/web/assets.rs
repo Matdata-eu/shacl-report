@@ -33,6 +33,26 @@ pub static ASSETS: &[Asset] = &[
         "assets/app/styles.css"
     ),
     txt!(
+        "/assets/app/sparql.js",
+        "application/javascript",
+        "assets/app/sparql.js"
+    ),
+    txt!(
+        "/assets/app/shapes.js",
+        "application/javascript",
+        "assets/app/shapes.js"
+    ),
+    txt!(
+        "/assets/vendor/yasgui/yasgui.min.js",
+        "application/javascript",
+        "assets/vendor/yasgui/yasgui.min.js"
+    ),
+    txt!(
+        "/assets/vendor/yasgui/yasgui.min.css",
+        "text/css; charset=utf-8",
+        "assets/vendor/yasgui/yasgui.min.css"
+    ),
+    txt!(
         "/assets/vendor/tabulator/tabulator.min.js",
         "application/javascript",
         "assets/vendor/tabulator/tabulator.min.js"

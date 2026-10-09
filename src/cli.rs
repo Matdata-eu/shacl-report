@@ -58,6 +58,11 @@ pub struct Args {
     #[arg(long = "fail-on", value_enum, default_value_t = FailOn::Violation)]
     pub fail_on: FailOn,
 
+    /// SPARQL endpoint holding the validated data; preset in the viewer's
+    /// query editor for running SPARQL constraints and generated queries.
+    #[arg(long = "endpoint", value_name = "URL")]
+    pub endpoint: Option<String>,
+
     /// Open the report in the local web viewer.
     #[arg(long)]
     pub view: bool,
@@ -77,15 +82,21 @@ pub struct ServeArgs {
     /// SHACL validation report to preload.
     #[arg(long = "report")]
     pub report: Option<PathBuf>,
-    /// Data graph to preload (requires `--report`). Can be repeated.
-    #[arg(long = "data", value_name = "FILE", requires = "report")]
+    /// Data graph to preload (file or http(s) URL). Can be repeated.
+    #[arg(long = "data", value_name = "FILE")]
     pub data: Vec<PathBuf>,
-    /// Shapes graph to preload (requires `--report`). Can be repeated.
-    #[arg(long = "shapes", value_name = "FILE", requires = "report")]
+    /// Shapes graph to preload (file or http(s) URL); enough on its own to
+    /// explore the shapes. Can be repeated.
+    #[arg(long = "shapes", value_name = "FILE")]
     pub shapes: Vec<PathBuf>,
     /// Override the input format of the report.
     #[arg(long = "format", value_enum)]
     pub format: Option<InputFormat>,
+    /// SPARQL endpoint holding the validated data; preset in the viewer's
+    /// query editor for running SPARQL constraints and generated queries.
+    #[arg(long = "endpoint", value_name = "URL")]
+    pub endpoint: Option<String>,
+
     /// Bind address for the web viewer.
     #[arg(long, default_value = "127.0.0.1:0")]
     pub bind: String,

@@ -6,6 +6,7 @@
 
 use crate::cli::InputFormat;
 use crate::input::{MemoryFile, load_graph, load_graph_from_memory};
+use crate::shapes::ShapesModel;
 use anyhow::{Result, bail};
 use oxrdf::vocab::{rdf, rdfs};
 use oxrdf::{Graph, NamedNodeRef, NamedOrBlankNodeRef, TermRef};
@@ -13,9 +14,9 @@ use serde::Serialize;
 use std::collections::{BTreeMap, HashSet};
 use std::path::PathBuf;
 
-const SH: &str = "http://www.w3.org/ns/shacl#";
+pub(crate) const SH: &str = "http://www.w3.org/ns/shacl#";
 
-mod sh {
+pub(crate) mod sh {
     use oxrdf::NamedNodeRef;
     macro_rules! sh_term {
         ($name:ident, $local:literal) => {
@@ -55,7 +56,8 @@ pub const MAX_FOCUS_TRIPLES: usize = 200;
 /// Paths of the files a report was built from.
 #[derive(Debug, Clone, Default)]
 pub struct ReportInputs {
-    pub report: PathBuf,
+    /// The validation report; optional when only shapes are explored.
+    pub report: Option<PathBuf>,
     pub data: Vec<PathBuf>,
     pub shapes: Vec<PathBuf>,
     pub format: Option<InputFormat>,
@@ -156,6 +158,9 @@ pub struct ResultRow {
     pub shape: Option<TermDto>,
     /// Human label for the source shape, with `<iri>` tokens.
     pub shape_label: String,
+    /// Key of the resolved shape in [`Report::shapes`] (`<iri>` or `_:id`).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub shape_key: Option<String>,
     /// The violated constraint, e.g. `<…#minCount> 1`, when the shapes graph
     /// is known.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -199,6 +204,14 @@ pub struct Report {
     pub focus: BTreeMap<String, Vec<ContextTriple>>,
     pub has_data: bool,
     pub has_shapes: bool,
+    /// False when only shapes (and data) were loaded, without a report.
+    pub has_report: bool,
+    /// The shapes graph as an explorable model, when shapes were given.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub shapes: Option<ShapesModel>,
+    /// SPARQL endpoint preset for the viewer's query editor.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sparql_endpoint: Option<String>,
 }
 
 impl Report {
@@ -216,12 +229,14 @@ impl Report {
 pub fn load_report(inputs: &ReportInputs) -> Result<Report> {
     let mut prefixes = Vec::new();
     let mut report_graph = Graph::new();
-    load_graph(
-        std::slice::from_ref(&inputs.report),
-        inputs.format,
-        &mut report_graph,
-        &mut prefixes,
-    )?;
+    if let Some(report) = &inputs.report {
+        load_graph(
+            std::slice::from_ref(report),
+            inputs.format,
+            &mut report_graph,
+            &mut prefixes,
+        )?;
+    }
     let mut shapes_graph = Graph::new();
     load_graph(&inputs.shapes, None, &mut shapes_graph, &mut prefixes)?;
     let mut data_graph = Graph::new();
@@ -229,7 +244,7 @@ pub fn load_report(inputs: &ReportInputs) -> Result<Report> {
 
     let display = |p: &PathBuf| p.display().to_string();
     let sources = Sources {
-        report: display(&inputs.report),
+        report: inputs.report.as_ref().map(display).unwrap_or_default(),
         data: inputs.data.iter().map(display).collect(),
         shapes: inputs.shapes.iter().map(display).collect(),
     };
@@ -238,18 +253,20 @@ pub fn load_report(inputs: &ReportInputs) -> Result<Report> {
 
 /// Like [`load_report`], for files supplied by content (viewer uploads).
 pub fn load_report_from_memory(
-    report: &MemoryFile,
+    report: Option<&MemoryFile>,
     shapes: &[MemoryFile],
     data: &[MemoryFile],
 ) -> Result<Report> {
     let mut prefixes = Vec::new();
     let mut report_graph = Graph::new();
-    load_graph_from_memory(
-        std::slice::from_ref(report),
-        None,
-        &mut report_graph,
-        &mut prefixes,
-    )?;
+    if let Some(report) = report {
+        load_graph_from_memory(
+            std::slice::from_ref(report),
+            None,
+            &mut report_graph,
+            &mut prefixes,
+        )?;
+    }
     let mut shapes_graph = Graph::new();
     load_graph_from_memory(shapes, None, &mut shapes_graph, &mut prefixes)?;
     let mut data_graph = Graph::new();
@@ -257,7 +274,7 @@ pub fn load_report_from_memory(
 
     let names = |files: &[MemoryFile]| files.iter().map(|f| f.name.clone()).collect();
     let sources = Sources {
-        report: report.name.clone(),
+        report: report.map(|r| r.name.clone()).unwrap_or_default(),
         data: names(data),
         shapes: names(shapes),
     };
@@ -271,13 +288,28 @@ fn finish(
     sources: Sources,
     mut prefixes: Vec<(String, String)>,
 ) -> Result<Report> {
-    let mut report = build_report(
-        report_graph,
-        shapes_graph,
-        data_graph,
-        !sources.data.is_empty(),
-    )?;
+    let has_report = !sources.report.is_empty();
+    if !has_report && sources.shapes.is_empty() {
+        bail!("give a validation report, a shapes graph, or both");
+    }
+    let mut report = if has_report {
+        build_report(
+            report_graph,
+            shapes_graph,
+            data_graph,
+            !sources.data.is_empty(),
+        )?
+    } else {
+        Report {
+            has_data: !sources.data.is_empty(),
+            ..Report::default()
+        }
+    };
+    report.has_report = has_report;
     report.has_shapes = !sources.shapes.is_empty();
+    if report.has_shapes {
+        report.shapes = Some(crate::shapes::build_shapes(shapes_graph));
+    }
     report.sources = sources;
     if !prefixes.iter().any(|(n, _)| n == "sh") {
         prefixes.push(("sh".to_string(), SH.to_string()));
@@ -405,6 +437,9 @@ pub fn build_report(
             component,
             shape: source_shape.map(TermDto::from_term),
             shape_label,
+            shape_key: resolved
+                .filter(|s| shapes.triples_for_subject(*s).next().is_some())
+                .map(crate::shapes::key_of),
             constraint,
             params,
             details,
@@ -472,6 +507,9 @@ pub fn build_report(
         focus,
         has_data,
         has_shapes: !shapes.is_empty(),
+        has_report: true,
+        shapes: None,
+        sparql_endpoint: None,
     })
 }
 
@@ -484,7 +522,7 @@ fn severity_rank(s: &str) -> u8 {
     }
 }
 
-fn as_subject(t: TermRef<'_>) -> Option<NamedOrBlankNodeRef<'_>> {
+pub(crate) fn as_subject(t: TermRef<'_>) -> Option<NamedOrBlankNodeRef<'_>> {
     match t {
         TermRef::NamedNode(n) => Some(n.into()),
         TermRef::BlankNode(b) => Some(b.into()),
@@ -492,7 +530,7 @@ fn as_subject(t: TermRef<'_>) -> Option<NamedOrBlankNodeRef<'_>> {
     }
 }
 
-fn literal_value(t: TermRef<'_>) -> Option<String> {
+pub(crate) fn literal_value(t: TermRef<'_>) -> Option<String> {
     match t {
         TermRef::Literal(l) => Some(l.value().to_string()),
         _ => None,
@@ -500,7 +538,7 @@ fn literal_value(t: TermRef<'_>) -> Option<String> {
 }
 
 /// Read an RDF list into its members. Stops on malformed or cyclic lists.
-fn read_list<'a>(g: &'a Graph, head: TermRef<'a>) -> Option<Vec<TermRef<'a>>> {
+pub(crate) fn read_list<'a>(g: &'a Graph, head: TermRef<'a>) -> Option<Vec<TermRef<'a>>> {
     let mut out = Vec::new();
     let mut cur = head;
     for _ in 0..10_000 {
@@ -560,7 +598,7 @@ fn render_path_inner(g: &Graph, p: TermRef<'_>, depth: usize) -> (String, bool) 
 }
 
 /// Render a constraint parameter value with `<iri>` tokens.
-fn render_value(g: &Graph, t: TermRef<'_>) -> String {
+pub(crate) fn render_value(g: &Graph, t: TermRef<'_>) -> String {
     match t {
         TermRef::NamedNode(n) => format!("<{}>", n.as_str()),
         TermRef::Literal(l) => {

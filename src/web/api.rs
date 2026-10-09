@@ -26,6 +26,12 @@ pub fn router(state: AppState) -> Router {
         .route("/api/export.html", get(export_html))
         .route("/api/load", post(load))
         .route(
+            "/api/sparql",
+            get(sparql_get)
+                .post(sparql_post)
+                .layer(DefaultBodyLimit::max(MAX_UPLOAD_BYTES)),
+        )
+        .route(
             "/api/upload",
             post(upload).layer(DefaultBodyLimit::max(MAX_UPLOAD_BYTES)),
         )
@@ -56,12 +62,14 @@ async fn asset(axum::extract::Path(path): axum::extract::Path<String>) -> Respon
 struct MetaDto {
     version: &'static str,
     loaded: bool,
+    endpoint: Option<String>,
 }
 
 async fn meta(State(s): State<AppState>) -> Json<MetaDto> {
     Json(MetaDto {
         version: env!("CARGO_PKG_VERSION"),
         loaded: s.data.lock().await.is_some(),
+        endpoint: s.endpoint.clone(),
     })
 }
 
@@ -108,7 +116,8 @@ async fn export_html(State(s): State<AppState>) -> Response {
 
 #[derive(Deserialize)]
 struct LoadBody {
-    report: PathBuf,
+    #[serde(default)]
+    report: Option<PathBuf>,
     #[serde(default)]
     data: Vec<PathBuf>,
     #[serde(default)]
@@ -122,12 +131,14 @@ async fn load(State(s): State<AppState>, Json(body): Json<LoadBody>) -> Response
         shapes: body.shapes,
         format: None,
     };
+    let endpoint = s.endpoint.clone();
     let result = match tokio::task::spawn_blocking(move || load_report(&inputs)).await {
         Ok(r) => r,
         Err(e) => Err(anyhow::anyhow!("task panic: {e}")),
     };
     match result {
-        Ok(r) => {
+        Ok(mut r) => {
+            r.sparql_endpoint = endpoint;
             *s.data.lock().await = Some(Arc::new(r));
             (StatusCode::OK, "ok").into_response()
         }
@@ -144,7 +155,8 @@ struct UploadFile {
 
 #[derive(Deserialize)]
 struct UploadBody {
-    report: UploadFile,
+    #[serde(default)]
+    report: Option<UploadFile>,
     #[serde(default)]
     data: Vec<UploadFile>,
     #[serde(default)]
@@ -163,8 +175,9 @@ fn decode(f: UploadFile) -> anyhow::Result<MemoryFile> {
 }
 
 async fn upload(State(s): State<AppState>, Json(body): Json<UploadBody>) -> Response {
+    let endpoint = s.endpoint.clone();
     let result = tokio::task::spawn_blocking(move || -> anyhow::Result<_> {
-        let report = decode(body.report)?;
+        let report = body.report.map(decode).transpose()?;
         let shapes = body
             .shapes
             .into_iter()
@@ -175,15 +188,114 @@ async fn upload(State(s): State<AppState>, Json(body): Json<UploadBody>) -> Resp
             .into_iter()
             .map(decode)
             .collect::<anyhow::Result<Vec<_>>>()?;
-        load_report_from_memory(&report, &shapes, &data)
+        load_report_from_memory(report.as_ref(), &shapes, &data)
+    })
+    .await
+    .unwrap_or_else(|e| Err(anyhow::anyhow!("task panic: {e}")));
+    match result {
+        Ok(mut r) => {
+            r.sparql_endpoint = endpoint;
+            *s.data.lock().await = Some(Arc::new(r));
+            (StatusCode::OK, "ok").into_response()
+        }
+        Err(e) => (StatusCode::BAD_REQUEST, format!("{e:#}")).into_response(),
+    }
+}
+
+#[derive(Deserialize)]
+struct SparqlTarget {
+    endpoint: String,
+}
+
+/// Forward the query string minus our own `endpoint` parameter.
+fn forwarded_query(raw: Option<&str>) -> String {
+    raw.unwrap_or("")
+        .split('&')
+        .filter(|kv| !kv.is_empty() && !kv.starts_with("endpoint="))
+        .collect::<Vec<_>>()
+        .join("&")
+}
+
+fn header_str(h: &axum::http::HeaderMap, name: header::HeaderName) -> Option<&str> {
+    h.get(name).and_then(|v| v.to_str().ok())
+}
+
+/// Relay a SPARQL request to the endpoint chosen in the viewer, so the
+/// browser is not blocked by endpoints that do not send CORS headers.
+async fn relay(
+    endpoint: String,
+    query: String,
+    headers: axum::http::HeaderMap,
+    body: Option<axum::body::Bytes>,
+) -> Response {
+    if !crate::http::is_url(&endpoint) {
+        return (StatusCode::BAD_REQUEST, "endpoint must be an http(s) URL").into_response();
+    }
+    let accept = header_str(&headers, header::ACCEPT).map(str::to_string);
+    let auth = header_str(&headers, header::AUTHORIZATION).map(str::to_string);
+    let body = body.map(|b| {
+        let ct = header_str(&headers, header::CONTENT_TYPE)
+            .unwrap_or("application/x-www-form-urlencoded")
+            .to_string();
+        (b.to_vec(), ct)
+    });
+    let result = tokio::task::spawn_blocking(move || {
+        crate::http::relay_sparql(
+            &endpoint,
+            (!query.is_empty()).then_some(query.as_str()),
+            body,
+            accept.as_deref(),
+            auth.as_deref(),
+        )
     })
     .await
     .unwrap_or_else(|e| Err(anyhow::anyhow!("task panic: {e}")));
     match result {
         Ok(r) => {
-            *s.data.lock().await = Some(Arc::new(r));
-            (StatusCode::OK, "ok").into_response()
+            let mut resp = Response::new(Body::from(r.body));
+            *resp.status_mut() = StatusCode::from_u16(r.status).unwrap_or(StatusCode::BAD_GATEWAY);
+            if let Ok(v) = r.content_type.parse() {
+                resp.headers_mut().insert(header::CONTENT_TYPE, v);
+            }
+            resp
         }
-        Err(e) => (StatusCode::BAD_REQUEST, format!("{e:#}")).into_response(),
+        Err(e) => (StatusCode::BAD_GATEWAY, format!("{e:#}")).into_response(),
+    }
+}
+
+async fn sparql_get(
+    axum::extract::Query(t): axum::extract::Query<SparqlTarget>,
+    uri: axum::http::Uri,
+    headers: axum::http::HeaderMap,
+) -> Response {
+    relay(t.endpoint, forwarded_query(uri.query()), headers, None).await
+}
+
+async fn sparql_post(
+    axum::extract::Query(t): axum::extract::Query<SparqlTarget>,
+    uri: axum::http::Uri,
+    headers: axum::http::HeaderMap,
+    body: axum::body::Bytes,
+) -> Response {
+    relay(
+        t.endpoint,
+        forwarded_query(uri.query()),
+        headers,
+        Some(body),
+    )
+    .await
+}
+
+#[cfg(test)]
+mod tests {
+    use super::forwarded_query;
+
+    #[test]
+    fn drops_only_the_endpoint_parameter() {
+        assert_eq!(
+            forwarded_query(Some("endpoint=http%3A%2F%2Fx%2Fsparql&query=ASK%7B%7D")),
+            "query=ASK%7B%7D"
+        );
+        assert_eq!(forwarded_query(None), "");
     }
 }

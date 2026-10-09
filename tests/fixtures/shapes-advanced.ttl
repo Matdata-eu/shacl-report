@@ -1,0 +1,109 @@
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix ex:   <http://example.org/ns#> .
+
+# Prefix declarations used by the SPARQL constraints below.
+ex:
+    a owl:Ontology ;
+    sh:declare [ sh:prefix "ex" ; sh:namespace "http://example.org/ns#"^^xsd:anyURI ] .
+
+ex:PersonShape
+    a sh:NodeShape ;
+    rdfs:label "Person" ;
+    sh:description "Every person needs a name, a plausible age and one employer." ;
+    sh:targetClass ex:Person ;
+    sh:not [ sh:class ex:Organisation ] ;
+    sh:property [
+        sh:path ex:name ;
+        sh:name "name" ;
+        sh:order 1 ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:minLength 2 ;
+        sh:disjoint ex:email ;
+    ] ;
+    sh:property [
+        sh:path ex:age ;
+        sh:name "age" ;
+        sh:order 2 ;
+        sh:or ( [ sh:datatype xsd:integer ] [ sh:datatype xsd:decimal ] ) ;
+        sh:minInclusive 0 ;
+        sh:maxInclusive 150 ;
+    ] ;
+    sh:property [
+        sh:path ex:worksFor ;
+        sh:name "employer" ;
+        sh:order 3 ;
+        sh:qualifiedValueShape [ sh:class ex:Organisation ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:qualifiedMaxCount 1 ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "{$this} works for {?value}, which is a person, not an organisation" ;
+        sh:prefixes ex: ;
+        sh:select """
+            SELECT $this (ex:worksFor AS ?path) ?value
+            WHERE {
+                $this ex:worksFor ?value .
+                ?value a ex:Person .
+            }
+            """ ;
+    ] .
+
+ex:EmailShape
+    a sh:NodeShape ;
+    sh:targetSubjectsOf ex:email ;
+    sh:property [
+        sh:path ex:email ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:Literal ;
+        sh:pattern "^[^@\\s]+@[^@\\s]+$" ;
+        ex:noWhitespace true ;
+        sh:message "Email address must contain exactly one @"@en ;
+    ] .
+
+ex:OrganisationShape
+    a sh:NodeShape ;
+    sh:targetClass ex:Organisation ;
+    sh:closed true ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [
+        sh:path ex:name ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path ex:address ;
+        sh:node ex:AddressShape ;
+    ] .
+
+ex:AddressShape
+    a sh:NodeShape ;
+    sh:property [
+        sh:path ex:country ;
+        sh:minCount 1 ;
+        sh:in ( "BE" "NL" "LU" ) ;
+        sh:severity sh:Info ;
+    ] .
+
+# A custom SPARQL-based constraint component.
+ex:NoWhitespaceConstraintComponent
+    a sh:ConstraintComponent ;
+    rdfs:label "No whitespace" ;
+    sh:parameter [ sh:path ex:noWhitespace ; sh:datatype xsd:boolean ] ;
+    sh:propertyValidator [
+        a sh:SPARQLSelectValidator ;
+        sh:message "Value must not contain whitespace" ;
+        sh:prefixes ex: ;
+        sh:select """
+            SELECT DISTINCT $this ?value
+            WHERE {
+                $this $PATH ?value .
+                FILTER ($noWhitespace && regex(str(?value), "\\\\s"))
+            }
+            """ ;
+    ] .
