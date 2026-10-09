@@ -81,6 +81,11 @@
     shapeFacetQuery: "",
     selected: null,
     table: null,
+    shapeKeys: null,
+    shapeKeysLabel: "",
+    tab: "results",
+    explorer: null,
+    editor: null,
   };
 
   const $ = (id) => document.getElementById(id);
@@ -99,6 +104,9 @@
     prev: $("prev-result"), next: $("next-result"), closeDrawer: $("close-drawer"),
     modal: $("modal"), closeModal: $("close-modal"), formSlot: $("open-form-slot"), formTpl: $("open-form-tpl"),
     toast: $("toast"), loading: $("loading"), loadingMsg: $("loading-msg"),
+    tabs: $("tabs"), resultsView: $("results-view"), shapesView: $("shapes-view"), sparqlView: $("sparql-view"),
+    shapeList: $("shape-list"), shapeDetail: $("shape-detail"), shapeSearch2: $("shape-search-2"), shapeCount: $("shape-count"),
+    shapesBack: $("shapes-back"),
   };
 
   // ---------- text helpers ----------
@@ -263,6 +271,7 @@
     if (skip !== "sev" && !state.sevOn.has(d.sev)) return false;
     if (skip !== "problem" && state.problem !== null && d.problem !== state.problem) return false;
     if (skip !== "shape" && state.shape !== null && d.shape_label !== state.shape) return false;
+    if (state.shapeKeys !== null && !state.shapeKeys.has(d.shape_key)) return false;
     if (state.resource !== null && d.focusKey !== state.resource) return false;
     if (state.search && !d.hay.includes(state.search)) return false;
     return true;
@@ -392,7 +401,7 @@
     }
     renderFacet(els.shapeFilter, shapes, "shape", (k) => esc(tokensToText(k)), state.shapeFacetAll ? Infinity : FACET_PAGE);
 
-    const any = state.sevOn.size !== SEVERITIES.length || state.problem !== null || state.shape !== null || state.resource !== null || state.search;
+    const any = state.sevOn.size !== SEVERITIES.length || state.problem !== null || state.shape !== null || state.shapeKeys !== null || state.resource !== null || state.search;
     els.resetFilters.classList.toggle("hidden", !any);
   }
 
@@ -437,6 +446,7 @@
     }
     if (state.problem !== null) chips.push([`Problem: ${state.problem}`, () => (state.problem = null)]);
     if (state.shape !== null) chips.push([`Shape: ${tokensToText(state.shape)}`, () => (state.shape = null)]);
+    if (state.shapeKeys !== null) chips.push([`Shape: ${state.shapeKeysLabel} (with its properties)`, () => (state.shapeKeys = null)]);
     if (state.resource !== null) {
       const d = state.byFocus.get(state.resource);
       chips.push([`Resource: ${d ? d[0].focusText : state.resource}`, () => (state.resource = null)]);
@@ -681,7 +691,7 @@
     h += `</dl></section>`;
 
     h += `<section class="d-section"><h3>Rule</h3><dl class="kv">`;
-    h += `<dt>Shape</dt><dd>${tokensToHtml(d.shape_label, true)}</dd>`;
+    h += `<dt>Shape</dt><dd>${tokensToHtml(d.shape_label, true)}${d.shape_key && r.shapes ? `<br><button class="link-btn" data-action="explore-shape">Explore this shape and run it as SPARQL</button>` : ""}</dd>`;
     if (d.shape && d.shape.t === "iri" && !d.shape_label.includes(d.shape.v)) h += `<dt>Shape IRI</dt><dd>${iriHtml(d.shape.v, true)}</dd>`;
     h += `<dt>Constraint</dt><dd>${d.constraint ? tokensToHtml(d.constraint, true) : r.has_shapes ? '<span class="faint">Not found in the shapes</span>' : '<span class="faint">Load the shapes file to see it</span>'}</dd>`;
     h += `<dt>Component</dt><dd>${d.component ? iriHtml(d.component, true) : '<span class="faint">Not stated</span>'}</dd>`;
@@ -765,9 +775,10 @@
     const submit = form.querySelector("button[type=submit]");
     const msg = form.querySelector(".form-msg");
     const pathReport = form.querySelector("[name=path-report]");
+    const pathShapes = form.querySelector("[name=path-shapes]");
 
     const refresh = () => {
-      submit.disabled = !(files.report.length || pathReport.value.trim());
+      submit.disabled = !(files.report.length || files.shapes.length || pathReport.value.trim() || pathShapes.value.trim());
     };
 
     for (const drop of form.querySelectorAll(".drop")) {
@@ -791,6 +802,7 @@
       });
     }
     pathReport.addEventListener("input", refresh);
+    pathShapes.addEventListener("input", refresh);
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -799,14 +811,14 @@
       submit.disabled = true;
       try {
         let resp;
-        if (pathReport.value.trim()) {
+        if (pathReport.value.trim() || pathShapes.value.trim()) {
           const split = (s) => s.split(",").map((x) => x.trim()).filter(Boolean);
           resp = await fetch("/api/load", {
             method: "POST",
             headers: { "content-type": "application/json" },
             body: JSON.stringify({
-              report: pathReport.value.trim(),
-              shapes: split(form.querySelector("[name=path-shapes]").value),
+              report: pathReport.value.trim() || null,
+              shapes: split(pathShapes.value),
               data: split(form.querySelector("[name=path-data]").value),
             }),
           });
@@ -814,11 +826,11 @@
           const enc = async (f) => ({ name: f.name, content: await toBase64(f) });
           msg.textContent = "Reading files…";
           const body = {
-            report: await enc(files.report[0]),
+            report: files.report.length ? await enc(files.report[0]) : null,
             shapes: await Promise.all(files.shapes.map(enc)),
             data: await Promise.all(files.data.map(enc)),
           };
-          msg.textContent = "Analysing report…";
+          msg.textContent = files.report.length ? "Analysing report…" : "Reading shapes…";
           resp = await fetch("/api/upload", {
             method: "POST",
             headers: { "content-type": "application/json" },
@@ -925,23 +937,89 @@
     state.collapsed = new Set();
     state.shapeFacetAll = false;
     closeDrawer();
+    state.shapeKeys = null;
     const src = report.sources || {};
-    els.fileName.textContent = (src.report || "").split(/[\\/]/).pop();
+    const base = (p) => (p || "").split(/[\\/]/).pop();
+    els.fileName.textContent = report.has_report === false ? (src.shapes || []).map(base).join(", ") : base(src.report);
     document.title = `${els.fileName.textContent || "SHACL report"} · shacl-report`;
     els.welcome.classList.add("hidden");
     els.exportBtn.parentElement.classList.remove("hidden");
     els.summary.classList.remove("hidden");
     els.results.classList.toggle("hidden", state.rows.length === 0 && report.conforms !== false);
     els.filters.classList.remove("hidden");
-    update();
+    const hasReport = report.has_report !== false;
+    const hasShapes = !!report.shapes;
+    els.tabs.classList.toggle("hidden", !hasShapes && !hasReport);
+    els.tabs.querySelector('[data-tab="results"]').classList.toggle("hidden", !hasReport);
+    els.tabs.querySelector('[data-tab="shapes"]').classList.toggle("hidden", !hasShapes);
+    els.tabs.querySelector('[data-tab="sparql"]').classList.toggle("hidden", !hasShapes);
+    els.exportMenu.querySelector('[data-export="csv"]').classList.toggle("hidden", !hasReport);
+    if (hasShapes) {
+      if (!state.explorer) {
+        state.explorer = window.ShaclShapes.create({
+          els, esc, tokensToHtml, tokensToText, iriHtml, iriText, plural, sevClass: SEV_CLASS,
+          prefixes: () => state.report.prefixes || [],
+          copy: copyText,
+          showResults: (keys, label) => {
+            state.shapeKeys = keys;
+            state.shapeKeysLabel = label;
+            state.shape = null;
+            switchTab("results");
+            update();
+            els.results.scrollIntoView({ block: "start" });
+          },
+          runQuery: (name, query) => {
+            switchTab("sparql");
+            state.editor.open(name, query);
+          },
+        });
+      }
+      if (!state.editor) {
+        state.editor = new window.ShaclSparql.Editor(els.sparqlView, {
+          server: !state.standalone,
+          preset: report.sparql_endpoint,
+          toast,
+          onNeedEndpoint: () => toast("Enter the SPARQL endpoint of your data; the query runs as soon as you press Use endpoint"),
+        });
+      }
+      state.explorer.setModel(report.shapes, state.rows, hasReport);
+    }
+    if (hasReport) update();
+    switchTab(hasReport ? "results" : "shapes");
+  }
+
+  function switchTab(tab) {
+    state.tab = tab;
+    document.body.dataset.tab = tab;
+    els.resultsView.classList.toggle("hidden", tab !== "results");
+    els.shapesView.classList.toggle("hidden", tab !== "shapes");
+    els.sparqlView.classList.toggle("hidden", tab !== "sparql");
+    for (const b of els.tabs.querySelectorAll("button")) {
+      const on = b.dataset.tab === tab;
+      b.classList.toggle("active", on);
+      b.setAttribute("aria-selected", String(on));
+    }
+    if (tab !== "results") closeDrawer();
+    if (tab === "sparql" && state.editor) state.editor.ensure();
+  }
+
+  async function copyText(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast("Copied to clipboard");
+    } catch (_) {
+      toast("Copy is not available here");
+    }
   }
 
   function showWelcome() {
+    els.tabs.classList.add("hidden");
+    switchTab("results");
     els.summary.classList.add("hidden");
     els.results.classList.add("hidden");
     els.filters.classList.add("hidden");
     els.exportBtn.parentElement.classList.add("hidden");
-    els.welcome.innerHTML = `<div class="welcome-hero"><h1>Make sense of a SHACL validation report</h1><p>See which shapes fail, what exactly is wrong in plain language, and the data behind each problem.</p></div><div id="welcome-form"></div>`;
+    els.welcome.innerHTML = `<div class="welcome-hero"><h1>Make sense of SHACL reports and shapes</h1><p>See which shapes fail and why in plain language, explore every rule in your shapes, and run them as SPARQL against your triple store.</p></div><div id="welcome-form"></div>`;
     els.welcome.classList.remove("hidden");
     mountOpenForm(document.getElementById("welcome-form"));
   }
@@ -980,6 +1058,10 @@
       state.shapeFacetQuery = els.shapeSearch.value.trim().toLowerCase();
       renderFilters();
     });
+    els.tabs.addEventListener("click", (e) => {
+      const b = e.target.closest("[data-tab]");
+      if (b) switchTab(b.dataset.tab);
+    });
     els.groupBy.addEventListener("click", (e) => {
       const b = e.target.closest("button");
       if (!b) return;
@@ -1017,6 +1099,12 @@
       }
       const a = e.target.closest("[data-action]");
       if (!a || !state.selected) return;
+      if (a.dataset.action === "explore-shape") {
+        const key = state.selected.shape_key;
+        switchTab("shapes");
+        state.explorer.showKey(key);
+        return;
+      }
       state.resource = a.dataset.action === "only-resource" ? state.selected.focusKey : null;
       update();
       renderDrawer();
@@ -1059,7 +1147,8 @@
       if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === "/") {
         e.preventDefault();
-        els.search.focus();
+        if (state.tab === "shapes") els.shapeSearch2.focus();
+        else if (state.tab === "results") els.search.focus();
       } else if (state.selected && (e.key === "j" || e.key === "ArrowDown")) {
         e.preventDefault();
         step(1);
@@ -1074,6 +1163,7 @@
   function resetFilters() {
     state.sevOn = new Set(SEVERITIES);
     state.problem = state.shape = state.resource = null;
+    state.shapeKeys = null;
     state.search = "";
     els.search.value = "";
     update();

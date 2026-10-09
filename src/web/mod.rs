@@ -14,6 +14,8 @@ use tokio::sync::Mutex;
 #[derive(Clone, Default)]
 pub struct AppState {
     pub data: Arc<Mutex<Option<Arc<Report>>>>,
+    /// SPARQL endpoint given on the command line, preset in the viewer.
+    pub endpoint: Option<String>,
 }
 
 /// Server lifecycle wrapper.
@@ -33,21 +35,27 @@ impl Server {
 pub enum Preload {
     None,
     Files(ReportInputs),
-    Loaded(Report),
+    Loaded(Box<Report>),
 }
 
-pub async fn build_state(preload: Preload) -> Result<AppState> {
-    let state = AppState::default();
+pub async fn build_state(preload: Preload, endpoint: Option<String>) -> Result<AppState> {
+    let state = AppState {
+        endpoint: endpoint.clone(),
+        ..AppState::default()
+    };
     let report = match preload {
         Preload::None => None,
-        Preload::Loaded(r) => Some(r),
+        Preload::Loaded(r) => Some(*r),
         Preload::Files(inputs) => Some(
             tokio::task::spawn_blocking(move || load_report(&inputs))
                 .await
                 .context("load task panicked")??,
         ),
     };
-    *state.data.lock().await = report.map(Arc::new);
+    *state.data.lock().await = report.map(|mut r| {
+        r.sparql_endpoint = endpoint;
+        Arc::new(r)
+    });
     Ok(state)
 }
 
@@ -68,13 +76,18 @@ pub async fn start(bind: &str, state: AppState) -> Result<Server> {
 
 /// Synchronous helper used by `main.rs`. Builds a current-thread Tokio runtime,
 /// starts the server, optionally opens the browser, and blocks until ctrl-c.
-pub fn run_blocking(bind: &str, open: bool, preload: Preload) -> Result<()> {
+pub fn run_blocking(
+    bind: &str,
+    open: bool,
+    preload: Preload,
+    endpoint: Option<String>,
+) -> Result<()> {
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
         .context("failed to build tokio runtime")?;
     rt.block_on(async move {
-        let state = build_state(preload).await?;
+        let state = build_state(preload, endpoint).await?;
         let server = start(bind, state).await?;
         let url = format!("http://{}/", server.addr);
         eprintln!("shacl-report viewer listening on {url}");

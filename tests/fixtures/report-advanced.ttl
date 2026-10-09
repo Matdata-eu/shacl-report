@@ -1,0 +1,159 @@
+@prefix ex: <http://example.org/ns#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[] a sh:ValidationReport ;
+    sh:conforms false ;
+    sh:result [ a sh:ValidationResult ;
+            sh:focusNode ex:bob ;
+            sh:resultMessage "Less than 1 values on ex:bob->ex:name" ;
+            sh:resultPath ex:name ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:MinCountConstraintComponent ;
+            sh:sourceShape _:n929f1904e51349019608f61343f0772eb3 ],
+        [ a sh:ValidationResult ;
+            sh:focusNode ex:carol ;
+            sh:resultMessage "More than 1 values on ex:carol->ex:name" ;
+            sh:resultPath ex:name ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:MaxCountConstraintComponent ;
+            sh:sourceShape _:n929f1904e51349019608f61343f0772eb3 ],
+        [ a sh:ValidationResult ;
+            sh:focusNode ex:carol ;
+            sh:resultMessage "Value is not <= Literal(\"150\", datatype=xsd:integer)" ;
+            sh:resultPath ex:age ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:MaxInclusiveConstraintComponent ;
+            sh:sourceShape _:n929f1904e51349019608f61343f0772eb4 ;
+            sh:value "thirty" ],
+        [ a sh:ValidationResult ;
+            sh:focusNode ex:bob ;
+            sh:resultMessage "Focus node does not conform to shape MinCount 1 MaxCount 1: [ sh:class ex:Organisation ]" ;
+            sh:resultPath ex:worksFor ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:QualifiedMinCountConstraintComponent ;
+            sh:sourceShape _:n929f1904e51349019608f61343f0772eb9 ],
+        [ a sh:ValidationResult ;
+            sh:focusNode ex:acme ;
+            sh:resultMessage "Less than 1 values on ex:acme->ex:name" ;
+            sh:resultPath ex:name ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:MinCountConstraintComponent ;
+            sh:sourceShape [ sh:minCount 1 ;
+                    sh:path ex:name ] ],
+        [ a sh:ValidationResult ;
+            sh:detail [ a sh:ValidationResult ;
+                    sh:focusNode _:n4f9571f992e246ae8845134a530afff5b2 ;
+                    sh:resultMessage "Value Literal(\"DE\") not in list ['Literal(\"NL\")', 'Literal(\"LU\")', 'Literal(\"BE\")']" ;
+                    sh:resultPath ex:country ;
+                    sh:resultSeverity sh:Info ;
+                    sh:sourceConstraintComponent sh:InConstraintComponent ;
+                    sh:sourceShape [ sh:in ( "BE" "NL" "LU" ) ;
+                            sh:minCount 1 ;
+                            sh:path ex:country ;
+                            sh:severity sh:Info ] ;
+                    sh:value "DE" ] ;
+            sh:focusNode ex:acme ;
+            sh:resultMessage "Value does not conform to Shape ex:AddressShape. See details for more information." ;
+            sh:resultPath ex:address ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:NodeConstraintComponent ;
+            sh:sourceShape [ sh:node ex:AddressShape ;
+                    sh:path ex:address ] ;
+            sh:value _:n4f9571f992e246ae8845134a530afff5b2 ],
+        [ a sh:ValidationResult ;
+            sh:focusNode ex:carol ;
+            sh:resultMessage "Value is not >= Literal(\"0\", datatype=xsd:integer)" ;
+            sh:resultPath ex:age ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:MinInclusiveConstraintComponent ;
+            sh:sourceShape _:n929f1904e51349019608f61343f0772eb4 ;
+            sh:value "thirty" ],
+        [ a sh:ValidationResult ;
+            sh:focusNode ex:bob ;
+            sh:resultMessage "Value is not <= Literal(\"150\", datatype=xsd:integer)" ;
+            sh:resultPath ex:age ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:MaxInclusiveConstraintComponent ;
+            sh:sourceShape _:n929f1904e51349019608f61343f0772eb4 ;
+            sh:value 212 ],
+        [ a sh:ValidationResult ;
+            sh:focusNode ex:carol ;
+            sh:resultMessage "Node Literal(\"thirty\") must conform to one or more shapes in [ sh:datatype xsd:integer ] , [ sh:datatype xsd:decimal ]" ;
+            sh:resultPath ex:age ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:OrConstraintComponent ;
+            sh:sourceShape _:n929f1904e51349019608f61343f0772eb4 ;
+            sh:value "thirty" ],
+        [ a sh:ValidationResult ;
+            sh:focusNode ex:carol ;
+            sh:resultMessage "Focus node does not conform to shape MinCount 1 MaxCount 1: [ sh:class ex:Organisation ]" ;
+            sh:resultPath ex:worksFor ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:QualifiedMinCountConstraintComponent ;
+            sh:sourceShape _:n929f1904e51349019608f61343f0772eb9 ],
+        [ a sh:ValidationResult ;
+            sh:focusNode ex:bob ;
+            sh:resultMessage "http://example.org/ns#bob works for http://example.org/ns#carol, which is a person, not an organisation" ;
+            sh:resultPath ex:worksFor ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraint [ a sh:SPARQLConstraint ;
+                    sh:message "{$this} works for {?value}, which is a person, not an organisation" ;
+                    sh:prefixes ex: ;
+                    sh:select """
+            SELECT $this (ex:worksFor AS ?path) ?value
+            WHERE {
+                $this ex:worksFor ?value .
+                ?value a ex:Person .
+            }
+            """ ] ;
+            sh:sourceConstraintComponent sh:SPARQLConstraintComponent ;
+            sh:sourceShape ex:PersonShape ;
+            sh:value ex:carol ],
+        [ a sh:ValidationResult ;
+            sh:focusNode ex:bob ;
+            sh:resultMessage "Email address must contain exactly one @"@en ;
+            sh:resultPath ex:email ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:PatternConstraintComponent ;
+            sh:sourceShape [ ex:noWhitespace true ;
+                    sh:maxCount 1 ;
+                    sh:message "Email address must contain exactly one @"@en ;
+                    sh:nodeKind sh:Literal ;
+                    sh:path ex:email ;
+                    sh:pattern "^[^@\\s]+@[^@\\s]+$" ] ;
+            sh:value "bob.example.org" ] .
+
+_:N0a7a62fd9cb34530ab7bf2d8949aae4a sh:datatype xsd:integer .
+
+_:N728cc9cea2204a958f231f266a70fe77 rdf:first _:N0a7a62fd9cb34530ab7bf2d8949aae4a ;
+    rdf:rest ( [ sh:datatype xsd:decimal ] ) .
+
+_:Ne3a6facbfb2a4db5b99156b656f7cafe sh:class ex:Organisation .
+
+_:n4f9571f992e246ae8845134a530afff5b2 ex:country "DE" .
+
+_:n929f1904e51349019608f61343f0772eb3 sh:datatype xsd:string ;
+    sh:disjoint ex:email ;
+    sh:maxCount 1 ;
+    sh:minCount 1 ;
+    sh:minLength 2 ;
+    sh:name "name" ;
+    sh:order 1 ;
+    sh:path ex:name .
+
+_:n929f1904e51349019608f61343f0772eb9 sh:name "employer" ;
+    sh:order 3 ;
+    sh:path ex:worksFor ;
+    sh:qualifiedMaxCount 1 ;
+    sh:qualifiedMinCount 1 ;
+    sh:qualifiedValueShape _:Ne3a6facbfb2a4db5b99156b656f7cafe .
+
+_:n929f1904e51349019608f61343f0772eb4 sh:maxInclusive 150 ;
+    sh:minInclusive 0 ;
+    sh:name "age" ;
+    sh:or _:N728cc9cea2204a958f231f266a70fe77 ;
+    sh:order 2 ;
+    sh:path ex:age .
+

@@ -16,7 +16,7 @@ fn fixtures(name: &str) -> PathBuf {
 
 fn inputs(report: &str, data: bool, shapes: bool) -> ReportInputs {
     ReportInputs {
-        report: fixtures(report),
+        report: Some(fixtures(report)),
         data: if data {
             vec![fixtures("data.ttl")]
         } else {
@@ -185,7 +185,7 @@ fn loads_uploaded_files_from_memory() {
         content: std::fs::read(fixtures(name)).unwrap(),
     };
     let r = load_report_from_memory(
-        &file("report-pyshacl.ttl"),
+        Some(&file("report-pyshacl.ttl")),
         &[file("shapes.ttl")],
         &[file("data.ttl")],
     )
@@ -199,4 +199,112 @@ fn loads_uploaded_files_from_memory() {
         .find(|x| x.component.as_deref() == Some(&format!("{SH}InConstraintComponent")))
         .unwrap();
     assert_eq!(in_list.params, vec!["\"BE\"", "\"NL\"", "\"LU\""]);
+}
+
+fn advanced(report: bool) -> shacl_report::report::Report {
+    load_report(&ReportInputs {
+        report: report.then(|| fixtures("report-advanced.ttl")),
+        data: vec![fixtures("data.ttl")],
+        shapes: vec![fixtures("shapes-advanced.ttl")],
+        format: None,
+    })
+    .unwrap()
+}
+
+#[test]
+fn explores_shapes_without_a_report() {
+    let r = advanced(false);
+    assert!(!r.has_report && r.has_shapes && r.results.is_empty());
+    let m = r.shapes.as_ref().unwrap();
+    let by_iri = |local: &str| {
+        m.shapes
+            .iter()
+            .find(|s| s.iri.as_deref() == Some(&format!("{EX}{local}")))
+            .unwrap()
+    };
+    let person = by_iri("PersonShape");
+    assert_eq!(person.label, "Person");
+    assert_eq!(person.targets[0].kind, "class");
+    assert!(
+        person
+            .constraints
+            .iter()
+            .any(|c| c.param == format!("{SH}not"))
+    );
+    // Property shapes are ordered by sh:order.
+    let names: Vec<_> = person
+        .properties
+        .iter()
+        .map(|p| m.shapes[*p].name.clone().unwrap())
+        .collect();
+    assert_eq!(names, ["name", "age", "employer"]);
+    let employer = &m.shapes[person.properties[2]];
+    let qvs = employer
+        .constraints
+        .iter()
+        .find(|c| c.param == format!("{SH}qualifiedValueShape"))
+        .unwrap();
+    assert!(qvs.values[0].shape.is_some());
+    // SPARQL constraint with its sh:prefixes declarations.
+    assert_eq!(person.sparql.len(), 1);
+    assert_eq!(person.sparql[0].kind, "select");
+    assert_eq!(
+        person.sparql[0].prefixes,
+        vec![("ex".to_string(), EX.to_string())]
+    );
+    assert_eq!(by_iri("EmailShape").targets[0].kind, "subjectsOf");
+    let org = by_iri("OrganisationShape");
+    let ignored = org
+        .constraints
+        .iter()
+        .find(|c| c.param.ends_with("#ignoredProperties"))
+        .unwrap();
+    assert!(ignored.list);
+    // Custom SPARQL-based constraint component and its parameter.
+    assert_eq!(m.components.len(), 1);
+    assert_eq!(m.components[0].validators[0].role, "propertyValidator");
+    let email = &m.shapes[by_iri("EmailShape").properties[0]];
+    let custom = email
+        .constraints
+        .iter()
+        .find(|c| c.param == format!("{EX}noWhitespace"))
+        .unwrap();
+    assert_eq!(custom.component, Some(0));
+    // The address shape is only reachable through sh:node, yet named, so it is a root.
+    assert!(m.roots.contains(&by_iri("AddressShape").id));
+}
+
+#[test]
+fn links_results_to_shapes() {
+    let r = advanced(true);
+    assert_eq!(r.stats.total, 12);
+    let m = r.shapes.as_ref().unwrap();
+    for res in &r.results {
+        let key = res
+            .shape_key
+            .as_deref()
+            .unwrap_or_else(|| panic!("{} unresolved", res.shape_label));
+        assert!(m.shapes.iter().any(|s| s.key == key), "{key}");
+    }
+}
+
+#[test]
+fn shapes_only_cli_summary() {
+    let out = bin()
+        .arg("--shapes")
+        .arg(fixtures("shapes-advanced.ttl"))
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(err.contains("sparql-constraints=1"), "{err}");
+}
+
+#[test]
+fn html_export_embeds_shapes_and_sparql_editor() {
+    let html = render_html(&advanced(true)).unwrap();
+    assert!(html.contains("\"shapes\":{"));
+    assert!(html.contains("ShaclShapes"));
+    assert!(html.contains("Yasgui"));
+    assert!(!html.contains("<script src="));
 }

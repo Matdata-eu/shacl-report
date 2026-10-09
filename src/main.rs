@@ -13,27 +13,29 @@ fn main() -> ExitCode {
     }
 
     let args = cli.report;
-    let Some(report_path) = args.report.clone() else {
+    if args.report.is_none() && args.shapes.is_empty() {
         eprintln!(
             "error: the following required arguments were not provided:\n  \
-             <REPORT>\n\nUsage: shacl-report <REPORT> [--data FILE] [--shapes FILE]\n\n\
+             <REPORT>\n\nUsage: shacl-report <REPORT> [--data FILE] [--shapes FILE]\n       \
+             shacl-report --shapes FILE --view   (explore shapes without a report)\n\n\
              For more information, try '--help'."
         );
         return ExitCode::from(2);
-    };
+    }
     let inputs = ReportInputs {
-        report: report_path,
+        report: args.report.clone(),
         data: args.data.clone(),
         shapes: args.shapes.clone(),
         format: args.format,
     };
-    let report = match load_report(&inputs) {
+    let mut report = match load_report(&inputs) {
         Ok(r) => r,
         Err(err) => {
             eprintln!("shacl-report: error: {err:#}");
             return ExitCode::from(2);
         }
     };
+    report.sparql_endpoint = args.endpoint.clone();
     if !args.quiet {
         print_summary(&report);
     }
@@ -61,7 +63,12 @@ fn main() -> ExitCode {
 }
 
 fn view(args: &Args, report: Report) -> anyhow::Result<()> {
-    web::run_blocking(&args.bind, !args.no_open, Preload::Loaded(report))
+    web::run_blocking(
+        &args.bind,
+        !args.no_open,
+        Preload::Loaded(Box::new(report)),
+        args.endpoint.clone(),
+    )
 }
 
 fn threshold(f: FailOn) -> u8 {
@@ -73,16 +80,17 @@ fn threshold(f: FailOn) -> u8 {
 }
 
 fn run_serve(s: ServeArgs) -> ExitCode {
-    let preload = match s.report {
-        Some(report) => Preload::Files(ReportInputs {
-            report,
+    let preload = if s.report.is_some() || !s.shapes.is_empty() {
+        Preload::Files(ReportInputs {
+            report: s.report,
             data: s.data,
             shapes: s.shapes,
             format: s.format,
-        }),
-        None => Preload::None,
+        })
+    } else {
+        Preload::None
     };
-    if let Err(err) = web::run_blocking(&s.bind, !s.no_open, preload) {
+    if let Err(err) = web::run_blocking(&s.bind, !s.no_open, preload, s.endpoint) {
         eprintln!("shacl-report: error: {err:#}");
         return ExitCode::from(2);
     }
@@ -90,6 +98,18 @@ fn run_serve(s: ServeArgs) -> ExitCode {
 }
 
 fn print_summary(r: &Report) {
+    if let Some(m) = &r.shapes {
+        let props = m.shapes.iter().filter(|s| s.kind == "property").count();
+        let sparql: usize = m.shapes.iter().map(|s| s.sparql.len()).sum();
+        eprintln!(
+            "shapes-graph: node-shapes={}  property-shapes={props}  sparql-constraints={sparql}  custom-components={}",
+            m.shapes.len() - props,
+            m.components.len()
+        );
+    }
+    if !r.has_report {
+        return;
+    }
     let s = &r.stats;
     let conforms = match r.conforms {
         Some(true) => "true",

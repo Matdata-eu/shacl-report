@@ -6,6 +6,7 @@
     <meta name="color-scheme" content="light dark" />
     <title>SHACL report</title>
     <link rel="stylesheet" href="/assets/vendor/tabulator/tabulator.min.css" />
+    <link rel="stylesheet" href="/assets/vendor/yasgui/yasgui.min.css" />
     <link rel="stylesheet" href="/assets/app/styles.css" />
   </head>
   <body>
@@ -23,6 +24,17 @@
           <span id="file-name" class="file-name"></span>
         </div>
       </div>
+      <nav id="tabs" class="tabs hidden" role="tablist" aria-label="Views">
+        <button data-tab="results" role="tab" aria-selected="true" class="active">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" /></svg><span>Results</span>
+        </button>
+        <button data-tab="shapes" role="tab" aria-selected="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5" /><circle cx="16.5" cy="16.5" r="3.5" /><path d="M16.5 4l3.5 6h-7z" /></svg><span>Shapes</span>
+        </button>
+        <button data-tab="sparql" role="tab" aria-selected="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7l-5 5 5 5M15 7l5 5-5 5" /></svg><span>SPARQL</span>
+        </button>
+      </nav>
       <div class="appbar-actions">
         <button id="open-files" class="btn hidden" title="Open another report">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2z" /></svg>
@@ -44,7 +56,7 @@
       </div>
     </header>
 
-    <div class="layout">
+    <div id="results-view" class="layout">
       <aside id="filters" class="filters" aria-label="Filters">
         <div class="filters-head only-mobile">
           <h2>Filters</h2>
@@ -138,10 +150,44 @@
       </aside>
     </div>
 
+    <div id="shapes-view" class="shapes-view hidden">
+      <aside class="shape-pane" aria-label="Shapes">
+        <div class="shape-pane-head">
+          <div class="search">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6" /><path d="M20 20l-4.5-4.5" /></svg>
+            <input id="shape-search-2" type="search" placeholder="Find a shape, class or property…" aria-label="Find a shape" />
+          </div>
+          <span id="shape-count" class="shape-count"></span>
+        </div>
+        <ul id="shape-list" class="shape-list"></ul>
+      </aside>
+      <main class="shape-main">
+        <button id="shapes-back" class="link-btn only-mobile shapes-back">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg> All shapes
+        </button>
+        <div id="shape-detail" class="shape-detail"></div>
+      </main>
+    </div>
+
+    <div id="sparql-view" class="sparql-view hidden">
+      <form id="endpoint-form" class="endpoint-bar">
+        <label class="endpoint-field">
+          <span>SPARQL endpoint</span>
+          <input id="endpoint" type="url" placeholder="https://example.org/sparql" autocomplete="url" spellcheck="false" />
+        </label>
+        <label class="proxy-toggle check hidden" title="Send queries through this shacl-report server, so endpoints without CORS headers work too">
+          <input id="endpoint-proxy" type="checkbox" checked /><span class="box"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg></span><span class="label">Relay through shacl-report</span>
+        </label>
+        <button type="submit" class="btn primary">Use endpoint</button>
+      </form>
+      <p id="endpoint-status" class="endpoint-status"></p>
+      <div id="yasgui" class="yasgui-host"><div class="empty-results"><h3>SPARQL editor</h3><p>Use the run buttons in the Shapes view to open a constraint as a query here, or write your own.</p></div></div>
+    </div>
+
     <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div class="modal-card">
         <div class="modal-head">
-          <h2 id="modal-title">Open a SHACL validation report</h2>
+          <h2 id="modal-title">Open a report or shapes</h2>
           <button id="close-modal" class="icon-btn" aria-label="Close">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
           </button>
@@ -152,20 +198,20 @@
 
     <template id="open-form-tpl">
       <form class="open-form">
-        <p class="open-intro">Drop the report your validator produced. Adding the shapes and data is optional, but it lets the viewer name every shape and show the resource behind each problem.</p>
+        <p class="open-intro">Drop the report your validator produced, the shapes it used, or both. With the shapes you can explore every rule and run it as SPARQL; with the data you see the resource behind each problem.</p>
         <div class="drop-grid">
           <label class="drop" data-slot="report">
             <input type="file" accept=".ttl,.nt,.rdf,.owl,.xml,.trig,.nq,.gz" hidden />
             <span class="drop-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7z" /><path d="M14 3v5h5M10 13l2 2 4-4" /></svg></span>
-            <span class="drop-title">Validation report <em>required</em></span>
+            <span class="drop-title">Validation report</span>
             <span class="drop-hint">Drop a file or click to browse</span>
             <span class="drop-files"></span>
           </label>
           <label class="drop" data-slot="shapes">
             <input type="file" accept=".ttl,.nt,.rdf,.owl,.xml,.trig,.nq,.gz" multiple hidden />
             <span class="drop-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5" /><circle cx="16.5" cy="16.5" r="3.5" /><path d="M16.5 4l3.5 6h-7z" /></svg></span>
-            <span class="drop-title">Shapes <em>optional</em></span>
-            <span class="drop-hint">Names shapes and shows broken rules</span>
+            <span class="drop-title">Shapes</span>
+            <span class="drop-hint">Explore the rules; names shapes in the report</span>
             <span class="drop-files"></span>
           </label>
           <label class="drop" data-slot="data">
@@ -177,16 +223,16 @@
           </label>
         </div>
         <details class="path-load">
-          <summary>Large files? Load them from disk by path instead</summary>
+          <summary>Large files or files online? Load them by path or URL</summary>
           <div class="path-fields">
-            <label>Report path<input name="path-report" type="text" placeholder="/path/to/report.ttl" /></label>
-            <label>Shapes paths (comma-separated)<input name="path-shapes" type="text" placeholder="/path/to/shapes.ttl" /></label>
-            <label>Data paths (comma-separated)<input name="path-data" type="text" placeholder="/path/to/data.ttl" /></label>
+            <label>Report path or URL<input name="path-report" type="text" placeholder="/path/to/report.ttl" /></label>
+            <label>Shapes paths or URLs (comma-separated)<input name="path-shapes" type="text" placeholder="/path/to/shapes.ttl, https://example.org/shapes.ttl" /></label>
+            <label>Data paths or URLs (comma-separated)<input name="path-data" type="text" placeholder="/path/to/data.ttl" /></label>
           </div>
         </details>
         <div class="form-foot">
           <span class="form-msg" role="status"></span>
-          <button type="submit" class="btn primary" disabled>Open report</button>
+          <button type="submit" class="btn primary" disabled>Open</button>
         </div>
       </form>
     </template>
@@ -195,6 +241,9 @@
     <div id="loading" class="loading hidden"><div class="spinner"></div><p id="loading-msg">Loading report…</p></div>
 
     <script src="/assets/vendor/tabulator/tabulator.min.js"></script>
+    <script src="/assets/vendor/yasgui/yasgui.min.js"></script>
+    <script src="/assets/app/sparql.js"></script>
+    <script src="/assets/app/shapes.js"></script>
     <!--REPORT-DATA-->
     <script src="/assets/app/app.js"></script>
   </body>

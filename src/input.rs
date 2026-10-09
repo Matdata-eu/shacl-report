@@ -130,6 +130,11 @@ pub fn load_graph<P: AsRef<Path>>(
 ) -> Result<()> {
     for path in paths {
         let path = path.as_ref();
+        if let Some(url) = path.to_str().filter(|s| crate::http::is_url(s)) {
+            let file = crate::http::fetch_rdf(url)?;
+            load_graph_from_memory(std::slice::from_ref(&file), format, graph, prefixes)?;
+            continue;
+        }
         let fmt = match format {
             Some(f) => f,
             None => detect_format(path)?,
