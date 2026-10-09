@@ -35,6 +35,11 @@
   --radius-sm: 8px;
   --font: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --mono: ui-monospace, "SFMono-Regular", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
+  --tok-string: #a11;
+  --tok-number: #164;
+  --tok-keyword: #170;
+  --tok-comment: #a50;
+  --tok-punct: #555;
   --appbar-h: 60px;
   --filters-w: 272px;
   --drawer-w: 440px;
@@ -73,6 +78,11 @@
     --shadow-sm: none;
     --shadow: 0 0 0 1px rgba(255, 255, 255, 0.02);
     --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5);
+    --tok-string: #ce9178;
+    --tok-number: #b5cea8;
+    --tok-keyword: #c586c0;
+    --tok-comment: #6a9955;
+    --tok-punct: #9ca4b0;
     color-scheme: dark;
   }
 }
@@ -107,6 +117,11 @@
   --shadow-sm: none;
   --shadow: 0 0 0 1px rgba(255, 255, 255, 0.02);
   --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5);
+  --tok-string: #ce9178;
+  --tok-number: #b5cea8;
+  --tok-keyword: #c586c0;
+  --tok-comment: #6a9955;
+  --tok-punct: #9ca4b0;
   color-scheme: dark;
 }
 
@@ -644,3 +659,37 @@ pre.query { margin: 0; padding: 10px 12px; font-family: var(--mono); font-size: 
 /* ---------- describe (Ctrl+click an IRI) ---------- */
 .describe-mode [data-iri] { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; color: var(--accent); }
 .d-tip { margin: 12px 0 0; color: var(--faint); font-size: 12.5px; }
+
+/* ---------- Turtle viewer (ported from MatGUI's Response view) ---------- */
+.explore {
+  position: fixed; top: var(--appbar-h); right: 0; bottom: 0; z-index: 45;
+  width: min(760px, 100vw); display: flex; flex-direction: column;
+  background: var(--surface); border-left: 1px solid var(--border); box-shadow: var(--shadow-lg);
+  transform: translateX(100%); visibility: hidden; transition: transform 0.18s ease, visibility 0s linear 0.18s;
+}
+.explore.open { transform: none; visibility: visible; transition: transform 0.18s ease; }
+.explore-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px 8px 16px; border-bottom: 1px solid var(--border); }
+.explore-title { display: flex; flex-direction: column; min-width: 0; }
+.explore-title strong { font-size: 15px; }
+.explore-sub { color: var(--muted); font-size: 12px; font-family: var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.explore-actions { display: flex; align-items: center; gap: 6px; flex: none; }
+.explore-tip { margin: 0; padding: 8px 16px; color: var(--muted); font-size: 12.5px; border-bottom: 1px solid var(--border); }
+.explore-progress { height: 2px; background: transparent; overflow: hidden; }
+.explore.busy .explore-progress { background: linear-gradient(90deg, transparent, var(--accent), transparent) 0 0 / 40% 100% no-repeat; animation: explore-progress 1s linear infinite; }
+@keyframes explore-progress { from { background-position: -40% 0; } to { background-position: 140% 0; } }
+.explore-body { flex: 1; min-height: 0; display: flex; }
+.explore-body .cm-editor { flex: 1; min-width: 0; height: 100%; background: var(--surface); color: var(--text); font-size: 13px; }
+.explore-body .cm-editor.cm-focused { outline: none; }
+.explore-body .cm-scroller { font-family: var(--mono); line-height: 1.5; }
+.explore-body .cm-gutters { background: var(--surface-2); border-right: 1px solid var(--border); color: var(--faint); }
+.explore-body .cm-foldPlaceholder { background: var(--surface-2); border: 1px solid var(--border); color: var(--muted); }
+.explore-body .tok-string, .explore-body .tok-string2 { color: var(--tok-string); }
+.explore-body .tok-number, .explore-body .tok-atom, .explore-body .tok-bool { color: var(--tok-number); }
+.explore-body .tok-keyword, .explore-body .tok-tagName { color: var(--tok-keyword); }
+.explore-body .tok-comment { color: var(--tok-comment); font-style: italic; }
+.explore-body .tok-punctuation, .explore-body .tok-angleBracket { color: var(--tok-punct); }
+.explore-body .cm-iri { color: var(--accent); }
+.describe-mode .explore-body .cm-iri { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+@media (max-width: 860px) {
+  .explore-actions .btn { padding: 0 8px; }
+}

@@ -43,6 +43,16 @@ pub static ASSETS: &[Asset] = &[
         "assets/app/shapes.js"
     ),
     txt!(
+        "/assets/app/turtle-view.js",
+        "application/javascript",
+        "assets/app/turtle-view.js"
+    ),
+    txt!(
+        "/assets/vendor/codemirror/codemirror.min.js",
+        "application/javascript",
+        "assets/vendor/codemirror/codemirror.min.js"
+    ),
+    txt!(
         "/assets/vendor/matgui/matgui.min.js",
         "application/javascript",
         "assets/vendor/matgui/matgui.min.js"
