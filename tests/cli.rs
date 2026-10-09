@@ -175,3 +175,28 @@ fn writes_html_file() {
     let body = std::fs::read_to_string(&out).unwrap();
     assert!(body.contains("SHACL_REPORT"));
 }
+
+#[test]
+fn loads_uploaded_files_from_memory() {
+    use shacl_report::input::MemoryFile;
+    use shacl_report::report::load_report_from_memory;
+    let file = |name: &str| MemoryFile {
+        name: name.to_string(),
+        content: std::fs::read(fixtures(name)).unwrap(),
+    };
+    let r = load_report_from_memory(
+        &file("report-pyshacl.ttl"),
+        &[file("shapes.ttl")],
+        &[file("data.ttl")],
+    )
+    .unwrap();
+    assert_eq!(r.stats.total, 11);
+    assert_eq!(r.sources.report, "report-pyshacl.ttl");
+    assert!(r.has_data && r.has_shapes);
+    let in_list = r
+        .results
+        .iter()
+        .find(|x| x.component.as_deref() == Some(&format!("{SH}InConstraintComponent")))
+        .unwrap();
+    assert_eq!(in_list.params, vec!["\"BE\"", "\"NL\"", "\"LU\""]);
+}

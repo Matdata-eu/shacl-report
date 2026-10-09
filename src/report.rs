@@ -5,7 +5,7 @@
 //! `<iri>` tokens so the front end can shorten them with the known prefixes.
 
 use crate::cli::InputFormat;
-use crate::input::load_graph;
+use crate::input::{MemoryFile, load_graph, load_graph_from_memory};
 use anyhow::{Result, bail};
 use oxrdf::vocab::{rdf, rdfs};
 use oxrdf::{Graph, NamedNodeRef, NamedOrBlankNodeRef, TermRef};
@@ -160,6 +160,10 @@ pub struct ResultRow {
     /// is known.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub constraint: Option<String>,
+    /// Values of the violated constraint parameter with `<iri>` tokens; RDF
+    /// lists (e.g. for `sh:in`) are expanded into their members.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub params: Vec<String>,
     /// Number of nested `sh:detail` results.
     pub details: usize,
 }
@@ -223,26 +227,58 @@ pub fn load_report(inputs: &ReportInputs) -> Result<Report> {
     let mut data_graph = Graph::new();
     load_graph(&inputs.data, None, &mut data_graph, &mut prefixes)?;
 
-    let mut report = build_report(
-        &report_graph,
-        &shapes_graph,
-        &data_graph,
-        !inputs.data.is_empty(),
-    )?;
-    report.has_shapes = !inputs.shapes.is_empty();
-    report.sources = Sources {
-        report: inputs.report.display().to_string(),
-        data: inputs
-            .data
-            .iter()
-            .map(|p| p.display().to_string())
-            .collect(),
-        shapes: inputs
-            .shapes
-            .iter()
-            .map(|p| p.display().to_string())
-            .collect(),
+    let display = |p: &PathBuf| p.display().to_string();
+    let sources = Sources {
+        report: display(&inputs.report),
+        data: inputs.data.iter().map(display).collect(),
+        shapes: inputs.shapes.iter().map(display).collect(),
     };
+    finish(&report_graph, &shapes_graph, &data_graph, sources, prefixes)
+}
+
+/// Like [`load_report`], for files supplied by content (viewer uploads).
+pub fn load_report_from_memory(
+    report: &MemoryFile,
+    shapes: &[MemoryFile],
+    data: &[MemoryFile],
+) -> Result<Report> {
+    let mut prefixes = Vec::new();
+    let mut report_graph = Graph::new();
+    load_graph_from_memory(
+        std::slice::from_ref(report),
+        None,
+        &mut report_graph,
+        &mut prefixes,
+    )?;
+    let mut shapes_graph = Graph::new();
+    load_graph_from_memory(shapes, None, &mut shapes_graph, &mut prefixes)?;
+    let mut data_graph = Graph::new();
+    load_graph_from_memory(data, None, &mut data_graph, &mut prefixes)?;
+
+    let names = |files: &[MemoryFile]| files.iter().map(|f| f.name.clone()).collect();
+    let sources = Sources {
+        report: report.name.clone(),
+        data: names(data),
+        shapes: names(shapes),
+    };
+    finish(&report_graph, &shapes_graph, &data_graph, sources, prefixes)
+}
+
+fn finish(
+    report_graph: &Graph,
+    shapes_graph: &Graph,
+    data_graph: &Graph,
+    sources: Sources,
+    mut prefixes: Vec<(String, String)>,
+) -> Result<Report> {
+    let mut report = build_report(
+        report_graph,
+        shapes_graph,
+        data_graph,
+        !sources.data.is_empty(),
+    )?;
+    report.has_shapes = !sources.shapes.is_empty();
+    report.sources = sources;
     if !prefixes.iter().any(|(n, _)| n == "sh") {
         prefixes.push(("sh".to_string(), SH.to_string()));
     }
@@ -350,9 +386,9 @@ pub fn build_report(
                 },
             },
         };
-        let constraint = match (resolved, component.as_deref()) {
-            (Some(s), Some(c)) => lookup.constraint(s, c),
-            _ => None,
+        let (constraint, params) = match (resolved, component.as_deref()) {
+            (Some(s), Some(c)) => lookup.constraint(s, c).unwrap_or_default(),
+            _ => (None, Vec::new()),
         };
         let details = report.objects_for_subject_predicate(r, sh::DETAIL).count();
 
@@ -370,6 +406,7 @@ pub fn build_report(
             shape: source_shape.map(TermDto::from_term),
             shape_label,
             constraint,
+            params,
             details,
         });
     }
@@ -693,21 +730,38 @@ impl<'a> Lookup<'a> {
         own.unwrap_or_else(|| "(anonymous shape)".to_string())
     }
 
-    fn constraint(&self, s: NamedOrBlankNodeRef<'a>, component: &str) -> Option<String> {
+    /// The violated constraint as display text plus its individual values.
+    fn constraint(
+        &self,
+        s: NamedOrBlankNodeRef<'a>,
+        component: &str,
+    ) -> Option<(Option<String>, Vec<String>)> {
         let param = component_parameter(component)?;
         let pred = NamedNodeRef::new_unchecked(&param);
         let g = self.graph_of(s);
-        let values: Vec<String> = self.objects(s, pred).map(|v| render_value(g, v)).collect();
-        if values.is_empty() {
+        let mut raw: Vec<TermRef<'a>> =
+            self.shapes.objects_for_subject_predicate(s, pred).collect();
+        if raw.is_empty() {
+            raw = self.report.objects_for_subject_predicate(s, pred).collect();
+        }
+        if raw.is_empty() {
             return None;
         }
+        let values: Vec<String> = raw.iter().map(|v| render_value(g, *v)).collect();
+        let params: Vec<String> = match raw.as_slice() {
+            [single @ TermRef::BlankNode(_)] => match read_list(g, *single) {
+                Some(items) => items.into_iter().map(|i| render_value(g, i)).collect(),
+                None => values.clone(),
+            },
+            _ => values.clone(),
+        };
         let mut out = format!("<{param}> {}", values.join(", "));
         if param.ends_with("#pattern")
             && let Some(flags) = self.object(s, sh::FLAGS).and_then(literal_value)
         {
             out.push_str(&format!(" (flags \"{flags}\")"));
         }
-        Some(out)
+        Some((Some(out), params))
     }
 }
 
