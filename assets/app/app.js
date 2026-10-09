@@ -104,7 +104,7 @@
     prev: $("prev-result"), next: $("next-result"), closeDrawer: $("close-drawer"),
     modal: $("modal"), closeModal: $("close-modal"), formSlot: $("open-form-slot"), formTpl: $("open-form-tpl"),
     toast: $("toast"), loading: $("loading"), loadingMsg: $("loading-msg"),
-    tabs: $("tabs"), resultsView: $("results-view"), shapesView: $("shapes-view"), sparqlView: $("sparql-view"),
+    tabs: $("tabs"), resultsView: $("results-view"), shapesView: $("shapes-view"), sparqlView: $("sparql-view"), explore: $("explore"),
     shapeList: $("shape-list"), shapeDetail: $("shape-detail"), shapeSearch2: $("shape-search-2"), shapeCount: $("shape-count"),
     shapesBack: $("shapes-back"),
   };
@@ -907,11 +907,10 @@
     return t || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
   }
 
-  /** Ctrl+click (Cmd+click on a Mac) on any IRI describes it in MatGUI. */
+  /** Ctrl+click (Cmd+click on a Mac) on any IRI describes it in the Turtle viewer. */
   function describe(iri, asObject) {
-    if (!state.editor) return;
-    switchTab("sparql");
-    state.editor.describe(iri, asObject);
+    if (!state.turtle) return;
+    state.turtle.describe(iri, asObject, true);
   }
 
   function toggleTheme() {
@@ -978,7 +977,20 @@
         toast,
         theme: currentTheme,
         shorten: iriText,
-        onNeedEndpoint: () => toast("Enter the SPARQL endpoint of your data; the query runs as soon as you press Use endpoint"),
+        onNeedEndpoint: () => {
+          if (state.turtle) state.turtle.close();
+          switchTab("sparql");
+          toast("Enter the SPARQL endpoint of your data; the query runs as soon as you press Use endpoint");
+        },
+      });
+      const editor = state.editor;
+      state.turtle = new window.ShaclTurtle.TurtleView(els.explore, {
+        endpoint: () => editor.endpoint,
+        requestUrl: () => editor.requestUrl(),
+        whenEndpoint: (fn) => editor.whenEndpoint(fn),
+        prefixes: () => state.report.prefixes || [],
+        shorten: iriText,
+        toast,
       });
     }
     if (hasShapes) {
@@ -1158,6 +1170,7 @@
       const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement && document.activeElement.tagName);
       if (e.key === "Escape") {
         if (!els.modal.classList.contains("hidden")) hideModal();
+        else if (state.turtle && state.turtle.isOpen) state.turtle.close();
         else if (els.filters.classList.contains("open")) openFilters(false);
         else if (state.selected) closeDrawer();
         else if (typing) document.activeElement.blur();
@@ -1179,13 +1192,14 @@
     window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => applyTheme(storedTheme()));
 
     // MatGUI-style describe: Ctrl+click an IRI for its triples, Ctrl+Shift+click
-    // for the triples that point to it. MatGUI handles clicks inside itself.
+    // for the triples that point to it. Both open the Turtle viewer, which
+    // handles further clicks itself, as MatGUI does inside its own editor.
     document.addEventListener(
       "click",
       (e) => {
         if (!(e.ctrlKey || e.metaKey) || e.button !== 0) return;
         const el = e.target.closest("[data-iri]");
-        if (!el || el.closest("#yasgui") || !state.editor) return;
+        if (!el || el.closest("#yasgui") || !state.turtle) return;
         e.preventDefault();
         e.stopPropagation();
         describe(el.dataset.iri, e.shiftKey);

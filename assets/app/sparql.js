@@ -374,6 +374,11 @@
         this.pending = null;
         this.run(tab, query, plugin, onEmpty);
       }
+      if (this.pendingFn && this.endpoint && /^https?:\/\//i.test(this.endpoint)) {
+        const fn = this.pendingFn;
+        this.pendingFn = null;
+        fn();
+      }
     }
 
     ensure() {
@@ -406,21 +411,11 @@
       if (this.yasgui && this.yasgui.themeManager) this.yasgui.themeManager.setTheme(theme);
     }
 
-    /**
-     * Describe an IRI the way MatGUI does on Ctrl+click: the triples where it
-     * is the subject, or (asObject, Ctrl+Shift+click) where it is the object,
-     * shown in MatGUI's Turtle view. Ctrl+click on IRIs there explores further.
-     */
-    describe(iri, asObject) {
-      const query = asObject
-        ? `CONSTRUCT { ?s ?p <${iri}> } WHERE { ?s ?p <${iri}> } LIMIT 1000`
-        : `CONSTRUCT { <${iri}> ?p ?o } WHERE { <${iri}> ?p ?o }`;
-      // N-Triples keeps every IRI in angle brackets, which is what MatGUI's
-      // Turtle view needs to follow it with another Ctrl+click.
-      const label = this.shorten(iri);
-      this.open(`${asObject ? "Used by" : "Describe"} ${label}`, query, "response", {
-        acceptHeaderGraph: "application/n-triples,text/turtle;q=0.9,*/*;q=0.5",
-      }, () => this.toast(asObject ? `Nothing in the endpoint points to ${label}` : `The endpoint has no triples about ${label}`));
+    /** Ask for an endpoint, then call `fn` once one is set. */
+    whenEndpoint(fn) {
+      this.pendingFn = fn;
+      this.onNeedEndpoint();
+      this.endpointInput.focus();
     }
 
     /** Open `query` in a new editor tab and run it when an endpoint is set. */
