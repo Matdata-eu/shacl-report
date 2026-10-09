@@ -76,6 +76,48 @@ pub fn parse_triples<R: BufRead, F: FnMut(Triple)>(
     Ok(prefixes)
 }
 
+/// A file supplied by content rather than by path (e.g. uploaded in the viewer).
+#[derive(Debug, Clone)]
+pub struct MemoryFile {
+    /// File name; used for format detection (including a trailing `.gz`).
+    pub name: String,
+    pub content: Vec<u8>,
+}
+
+/// Parse in-memory files into `graph`, like [`load_graph`] does for paths.
+pub fn load_graph_from_memory(
+    files: &[MemoryFile],
+    format: Option<InputFormat>,
+    graph: &mut Graph,
+    prefixes: &mut Vec<(String, String)>,
+) -> Result<()> {
+    for file in files {
+        let fmt = match format {
+            Some(f) => f,
+            None => detect_format(Path::new(&file.name))?,
+        };
+        let raw: Box<dyn Read + '_> = if file.name.to_ascii_lowercase().ends_with(".gz") {
+            Box::new(MultiGzDecoder::new(file.content.as_slice()))
+        } else {
+            Box::new(file.content.as_slice())
+        };
+        let found = parse_triples(BufReader::new(raw), fmt, |t| {
+            graph.insert(&t);
+        })
+        .with_context(|| format!("failed to parse {}", file.name))?;
+        merge_prefixes(prefixes, found);
+    }
+    Ok(())
+}
+
+fn merge_prefixes(prefixes: &mut Vec<(String, String)>, found: Vec<(String, String)>) {
+    for (name, iri) in found {
+        if !prefixes.iter().any(|(n, _)| *n == name) {
+            prefixes.push((name, iri));
+        }
+    }
+}
+
 /// Load one or more files into a single in-memory graph.
 ///
 /// `format` applies to every file; when `None` it is detected per file.
@@ -97,11 +139,7 @@ pub fn load_graph<P: AsRef<Path>>(
             graph.insert(&t);
         })
         .with_context(|| format!("failed to parse {}", path.display()))?;
-        for (name, iri) in found {
-            if !prefixes.iter().any(|(n, _)| *n == name) {
-                prefixes.push((name, iri));
-            }
-        }
+        merge_prefixes(prefixes, found);
     }
     Ok(())
 }

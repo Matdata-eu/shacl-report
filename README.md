@@ -12,8 +12,13 @@ anonymous `sh:ValidationResult` nodes pointing at blank-node property shapes.
 names every shape, shows the constraint that was broken, and puts the focus
 node's own triples next to each result.
 
-Screenshot:
-![image](screenshot-webapp.png)
+![Viewer with a result opened](screenshot-webapp.png)
+
+<details><summary>Dark theme</summary>
+
+![Viewer in dark theme](screenshot-dark.png)
+
+</details>
 
 ## Features
 
@@ -29,9 +34,20 @@ Screenshot:
   missing).
 - **Full SHACL property paths**, rendered as SPARQL paths: `^ex:worksFor`,
   `ex:address / ex:country`, `(ex:a | ex:b)*`.
-- **Web viewer** (`--view` / `serve`): group by shape, focus node, constraint,
-  path or severity; toggle severities; facet by shape and constraint; full-text
-  search; CSV download of the visible rows.
+- **Plain-language problems.** Every result is explained in words, e.g.
+  *"212" is above the maximum of 150* or *Missing a value for ex:name*, and
+  grouped into problem types such as *Missing value* or *Out of range*.
+- **Web viewer** (`--view` / `serve`):
+  - an overview with conformance status, severity counts and the most affected
+    shapes and most common problems (all clickable as filters);
+  - results as cards grouped by shape, resource or problem type, or as a
+    sortable table;
+  - filters for severity, problem type and shape, plus full-text search;
+  - a details panel with the rule, the resource's data and keyboard
+    navigation (`j`/`k`, `/` to search, `Esc` to close);
+  - drag-and-drop loading of the report, shapes and data files;
+  - light and dark themes, and a layout that works on a phone;
+  - CSV export of the shown results and a standalone HTML download.
 - **Self-contained HTML report** (`--html report.html`): the same viewer with
   the data inlined, no server needed. Ideal as a CI artifact.
 - **CI mode** (`--ci`) exits non-zero when results at or above `--fail-on`
@@ -91,7 +107,7 @@ focus-nodes=3  shapes=7
 ### Web viewer
 
 ```sh
-# Empty viewer — load files interactively in the browser
+# Empty viewer — drop the files into the browser
 shacl-report serve
 
 # Preload a report with its shapes and data
