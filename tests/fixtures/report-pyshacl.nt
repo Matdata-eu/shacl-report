@@ -1,0 +1,133 @@
+_:N19a2147cb2044c51ae00d8580f592c06 <http://www.w3.org/ns/shacl#sourceShape> _:n135e95484bc14173b412474dd9ad5ebfb1 .
+_:N01b72b326f3b483eb05e9e816ae377f9 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/shacl#ValidationResult> .
+_:n135e95484bc14173b412474dd9ad5ebfb5 <http://www.w3.org/ns/shacl#in> _:Ne24847578b97413d98e0e2954f7a5e8b .
+_:n135e95484bc14173b412474dd9ad5ebfb1 <http://www.w3.org/ns/shacl#datatype> <http://www.w3.org/2001/XMLSchema#string> .
+_:N53a8216ab7b94fe9b17c1b521544aa96 <http://www.w3.org/ns/shacl#resultMessage> "Value is not <= Literal(\"150\", datatype=xsd:integer)" .
+_:N31224af2043a4231a9bed21f9d436352 <http://www.w3.org/ns/shacl#focusNode> <http://example.org/ns#acme> .
+_:N0ffa6fdf2b2d4f698fe1b0ed7c7deac5 <http://www.w3.org/ns/shacl#focusNode> <http://example.org/ns#bob> .
+_:Nad57e16b9d9c4724b3e2054e36fae792 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .
+_:N076d29840ca444b48282926d7ace7624 <http://www.w3.org/ns/shacl#focusNode> <http://example.org/ns#carol> .
+_:N31224af2043a4231a9bed21f9d436352 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/shacl#ValidationResult> .
+_:Ne24847578b97413d98e0e2954f7a5e8b <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:N82c5e7c5d4dc486594924e3f223c3a2b .
+_:N076d29840ca444b48282926d7ace7624 <http://www.w3.org/ns/shacl#sourceShape> _:n135e95484bc14173b412474dd9ad5ebfb3 .
+_:N01b72b326f3b483eb05e9e816ae377f9 <http://www.w3.org/ns/shacl#resultMessage> "Value does not have class ex:Organisation" .
+_:N31224af2043a4231a9bed21f9d436352 <http://www.w3.org/ns/shacl#resultSeverity> <http://www.w3.org/ns/shacl#Violation> .
+_:N19a2147cb2044c51ae00d8580f592c06 <http://www.w3.org/ns/shacl#resultMessage> "More than 1 values on ex:carol->ex:name" .
+_:n135e95484bc14173b412474dd9ad5ebfb3 <http://www.w3.org/ns/shacl#maxInclusive> "150"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:N9aefa2b32e324688afe8efce6b6dc58e <http://www.w3.org/ns/shacl#sourceConstraintComponent> <http://www.w3.org/ns/shacl#MinCountConstraintComponent> .
+_:N90ad5326885340b99374e26ec8b401ba <http://www.w3.org/ns/shacl#resultPath> <http://example.org/ns#age> .
+_:N90ad5326885340b99374e26ec8b401ba <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/shacl#ValidationResult> .
+_:Nb7455dd1ee6b4dfcb3a4f1bf8f5d24f1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/shacl#ValidationReport> .
+_:N9be40f27c5ec4cbdb0ed797f50996bc3 <http://www.w3.org/ns/shacl#resultSeverity> <http://www.w3.org/ns/shacl#Info> .
+_:N19a2147cb2044c51ae00d8580f592c06 <http://www.w3.org/ns/shacl#resultSeverity> <http://www.w3.org/ns/shacl#Violation> .
+_:N076d29840ca444b48282926d7ace7624 <http://www.w3.org/ns/shacl#sourceConstraintComponent> <http://www.w3.org/ns/shacl#MinInclusiveConstraintComponent> .
+_:n135e95484bc14173b412474dd9ad5ebfb5 <http://www.w3.org/ns/shacl#path> _:N164fabfb8351452496da68ce8d72a256 .
+_:N53a8216ab7b94fe9b17c1b521544aa96 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/shacl#ValidationResult> .
+_:N076d29840ca444b48282926d7ace7624 <http://www.w3.org/ns/shacl#value> "thirty" .
+_:N9ca8ddc3dc9f459cae35435e61e6a22c <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://example.org/ns#country> .
+_:N9ca8ddc3dc9f459cae35435e61e6a22c <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .
+_:N9aefa2b32e324688afe8efce6b6dc58e <http://www.w3.org/ns/shacl#resultMessage> "Organisation has no employees" .
+_:N0ffa6fdf2b2d4f698fe1b0ed7c7deac5 <http://www.w3.org/ns/shacl#sourceConstraintComponent> <http://www.w3.org/ns/shacl#PatternConstraintComponent> .
+_:Nad57e16b9d9c4724b3e2054e36fae792 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> "LU" .
+_:N7c4082f7c0024892876dffd9038d1866 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/shacl#ValidationResult> .
+_:N7c4082f7c0024892876dffd9038d1866 <http://www.w3.org/ns/shacl#resultPath> <http://example.org/ns#name> .
+_:N9be40f27c5ec4cbdb0ed797f50996bc3 <http://www.w3.org/ns/shacl#resultMessage> "Value Literal(\"DE\") not in list ['Literal(\"NL\")', 'Literal(\"LU\")', 'Literal(\"BE\")']" .
+_:N9aefa2b32e324688afe8efce6b6dc58e <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/shacl#ValidationResult> .
+_:N90ad5326885340b99374e26ec8b401ba <http://www.w3.org/ns/shacl#resultMessage> "Value is not Literal with datatype xsd:integer" .
+_:Nb7455dd1ee6b4dfcb3a4f1bf8f5d24f1 <http://www.w3.org/ns/shacl#result> _:N53a8216ab7b94fe9b17c1b521544aa96 .
+_:N164fabfb8351452496da68ce8d72a256 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://example.org/ns#address> .
+_:n135e95484bc14173b412474dd9ad5ebfb1 <http://www.w3.org/ns/shacl#minCount> "1"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:n135e95484bc14173b412474dd9ad5ebfb12 <http://www.w3.org/ns/shacl#inversePath> <http://example.org/ns#worksFor> .
+_:N076d29840ca444b48282926d7ace7624 <http://www.w3.org/ns/shacl#resultSeverity> <http://www.w3.org/ns/shacl#Violation> .
+_:N62e313f9645b40cfa229c383a81c5160 <http://www.w3.org/ns/shacl#sourceShape> _:n135e95484bc14173b412474dd9ad5ebfb3 .
+_:N90ad5326885340b99374e26ec8b401ba <http://www.w3.org/ns/shacl#sourceConstraintComponent> <http://www.w3.org/ns/shacl#DatatypeConstraintComponent> .
+_:n135e95484bc14173b412474dd9ad5ebfb6 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://example.org/ns#address> .
+_:N076d29840ca444b48282926d7ace7624 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/shacl#ValidationResult> .
+_:N90ad5326885340b99374e26ec8b401ba <http://www.w3.org/ns/shacl#sourceShape> _:n135e95484bc14173b412474dd9ad5ebfb3 .
+_:Nb7455dd1ee6b4dfcb3a4f1bf8f5d24f1 <http://www.w3.org/ns/shacl#result> _:N19a2147cb2044c51ae00d8580f592c06 .
+_:N9be40f27c5ec4cbdb0ed797f50996bc3 <http://www.w3.org/ns/shacl#value> "DE" .
+_:N9be40f27c5ec4cbdb0ed797f50996bc3 <http://www.w3.org/ns/shacl#sourceShape> _:n135e95484bc14173b412474dd9ad5ebfb5 .
+_:n135e95484bc14173b412474dd9ad5ebfb2 <http://www.w3.org/ns/shacl#path> <http://example.org/ns#email> .
+_:Nb7455dd1ee6b4dfcb3a4f1bf8f5d24f1 <http://www.w3.org/ns/shacl#result> _:N90ad5326885340b99374e26ec8b401ba .
+_:N53a8216ab7b94fe9b17c1b521544aa96 <http://www.w3.org/ns/shacl#value> "212"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:n135e95484bc14173b412474dd9ad5ebfb2 <http://www.w3.org/ns/shacl#message> "Email address must contain exactly one @"@en .
+_:N7c4082f7c0024892876dffd9038d1866 <http://www.w3.org/ns/shacl#resultMessage> "Less than 1 values on ex:bob->ex:name" .
+_:n135e95484bc14173b412474dd9ad5ebfb6 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:Nd0c3c79fa63c42a1b4332c8a92cf08e5 .
+_:n135e95484bc14173b412474dd9ad5ebfb5 <http://www.w3.org/ns/shacl#severity> <http://www.w3.org/ns/shacl#Info> .
+_:n135e95484bc14173b412474dd9ad5ebfb11 <http://www.w3.org/ns/shacl#path> _:N14b2c197bb3e40ad93b1a1cb006a93ab .
+_:N53a8216ab7b94fe9b17c1b521544aa96 <http://www.w3.org/ns/shacl#sourceShape> _:n135e95484bc14173b412474dd9ad5ebfb3 .
+_:N53a8216ab7b94fe9b17c1b521544aa96 <http://www.w3.org/ns/shacl#sourceConstraintComponent> <http://www.w3.org/ns/shacl#MaxInclusiveConstraintComponent> .
+_:n135e95484bc14173b412474dd9ad5ebfb4 <http://www.w3.org/ns/shacl#path> <http://example.org/ns#name> .
+_:n135e95484bc14173b412474dd9ad5ebfb11 <http://www.w3.org/ns/shacl#minCount> "1"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:Nb7455dd1ee6b4dfcb3a4f1bf8f5d24f1 <http://www.w3.org/ns/shacl#result> _:N0ffa6fdf2b2d4f698fe1b0ed7c7deac5 .
+_:N9aefa2b32e324688afe8efce6b6dc58e <http://www.w3.org/ns/shacl#focusNode> <http://example.org/ns#acme> .
+_:N01b72b326f3b483eb05e9e816ae377f9 <http://www.w3.org/ns/shacl#sourceShape> <http://example.org/ns#PersonWorksForShape> .
+_:N0ffa6fdf2b2d4f698fe1b0ed7c7deac5 <http://www.w3.org/ns/shacl#resultSeverity> <http://www.w3.org/ns/shacl#Violation> .
+_:n135e95484bc14173b412474dd9ad5ebfb1 <http://www.w3.org/ns/shacl#maxCount> "1"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:N9be40f27c5ec4cbdb0ed797f50996bc3 <http://www.w3.org/ns/shacl#focusNode> <http://example.org/ns#acme> .
+_:N9be40f27c5ec4cbdb0ed797f50996bc3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/shacl#ValidationResult> .
+_:N62e313f9645b40cfa229c383a81c5160 <http://www.w3.org/ns/shacl#sourceConstraintComponent> <http://www.w3.org/ns/shacl#MaxInclusiveConstraintComponent> .
+_:Nb7455dd1ee6b4dfcb3a4f1bf8f5d24f1 <http://www.w3.org/ns/shacl#result> _:N9aefa2b32e324688afe8efce6b6dc58e .
+_:N9be40f27c5ec4cbdb0ed797f50996bc3 <http://www.w3.org/ns/shacl#sourceConstraintComponent> <http://www.w3.org/ns/shacl#InConstraintComponent> .
+_:n135e95484bc14173b412474dd9ad5ebfb2 <http://www.w3.org/ns/shacl#pattern> "^[^@]+@[^@]+$" .
+_:N62e313f9645b40cfa229c383a81c5160 <http://www.w3.org/ns/shacl#resultMessage> "Value is not <= Literal(\"150\", datatype=xsd:integer)" .
+_:N01b72b326f3b483eb05e9e816ae377f9 <http://www.w3.org/ns/shacl#resultSeverity> <http://www.w3.org/ns/shacl#Warning> .
+_:Nb7455dd1ee6b4dfcb3a4f1bf8f5d24f1 <http://www.w3.org/ns/shacl#result> _:N31224af2043a4231a9bed21f9d436352 .
+_:N82c5e7c5d4dc486594924e3f223c3a2b <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> "NL" .
+_:Nd0c3c79fa63c42a1b4332c8a92cf08e5 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .
+_:N90ad5326885340b99374e26ec8b401ba <http://www.w3.org/ns/shacl#value> "thirty" .
+_:N82c5e7c5d4dc486594924e3f223c3a2b <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:Nad57e16b9d9c4724b3e2054e36fae792 .
+_:N62e313f9645b40cfa229c383a81c5160 <http://www.w3.org/ns/shacl#focusNode> <http://example.org/ns#carol> .
+_:Nb7455dd1ee6b4dfcb3a4f1bf8f5d24f1 <http://www.w3.org/ns/shacl#result> _:N7c4082f7c0024892876dffd9038d1866 .
+_:N164fabfb8351452496da68ce8d72a256 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:N9ca8ddc3dc9f459cae35435e61e6a22c .
+_:N0ffa6fdf2b2d4f698fe1b0ed7c7deac5 <http://www.w3.org/ns/shacl#resultPath> <http://example.org/ns#email> .
+_:n135e95484bc14173b412474dd9ad5ebfb11 <http://www.w3.org/ns/shacl#severity> <http://www.w3.org/ns/shacl#Warning> .
+_:N31224af2043a4231a9bed21f9d436352 <http://www.w3.org/ns/shacl#resultMessage> "Less than 1 values on ex:acme->ex:name" .
+_:N076d29840ca444b48282926d7ace7624 <http://www.w3.org/ns/shacl#resultPath> <http://example.org/ns#age> .
+_:N076d29840ca444b48282926d7ace7624 <http://www.w3.org/ns/shacl#resultMessage> "Value is not >= Literal(\"0\", datatype=xsd:integer)" .
+_:N9aefa2b32e324688afe8efce6b6dc58e <http://www.w3.org/ns/shacl#sourceShape> _:n135e95484bc14173b412474dd9ad5ebfb11 .
+_:n135e95484bc14173b412474dd9ad5ebfb11 <http://www.w3.org/ns/shacl#message> "Organisation has no employees" .
+_:N01b72b326f3b483eb05e9e816ae377f9 <http://www.w3.org/ns/shacl#sourceConstraintComponent> <http://www.w3.org/ns/shacl#ClassConstraintComponent> .
+_:N62e313f9645b40cfa229c383a81c5160 <http://www.w3.org/ns/shacl#resultPath> <http://example.org/ns#age> .
+_:N01b72b326f3b483eb05e9e816ae377f9 <http://www.w3.org/ns/shacl#focusNode> <http://example.org/ns#bob> .
+_:N90ad5326885340b99374e26ec8b401ba <http://www.w3.org/ns/shacl#focusNode> <http://example.org/ns#carol> .
+_:N0ffa6fdf2b2d4f698fe1b0ed7c7deac5 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/shacl#ValidationResult> .
+_:Ne24847578b97413d98e0e2954f7a5e8b <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> "BE" .
+_:Nb7455dd1ee6b4dfcb3a4f1bf8f5d24f1 <http://www.w3.org/ns/shacl#result> _:N62e313f9645b40cfa229c383a81c5160 .
+_:N7c4082f7c0024892876dffd9038d1866 <http://www.w3.org/ns/shacl#sourceConstraintComponent> <http://www.w3.org/ns/shacl#MinCountConstraintComponent> .
+_:n135e95484bc14173b412474dd9ad5ebfb3 <http://www.w3.org/ns/shacl#minInclusive> "0"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:N62e313f9645b40cfa229c383a81c5160 <http://www.w3.org/ns/shacl#value> "thirty" .
+_:N7c4082f7c0024892876dffd9038d1866 <http://www.w3.org/ns/shacl#sourceShape> _:n135e95484bc14173b412474dd9ad5ebfb1 .
+_:N9be40f27c5ec4cbdb0ed797f50996bc3 <http://www.w3.org/ns/shacl#resultPath> _:n135e95484bc14173b412474dd9ad5ebfb6 .
+_:N90ad5326885340b99374e26ec8b401ba <http://www.w3.org/ns/shacl#resultSeverity> <http://www.w3.org/ns/shacl#Violation> .
+_:N19a2147cb2044c51ae00d8580f592c06 <http://www.w3.org/ns/shacl#focusNode> <http://example.org/ns#carol> .
+_:Nd0c3c79fa63c42a1b4332c8a92cf08e5 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://example.org/ns#country> .
+_:N31224af2043a4231a9bed21f9d436352 <http://www.w3.org/ns/shacl#resultPath> <http://example.org/ns#name> .
+_:N01b72b326f3b483eb05e9e816ae377f9 <http://www.w3.org/ns/shacl#value> <http://example.org/ns#carol> .
+_:n135e95484bc14173b412474dd9ad5ebfb4 <http://www.w3.org/ns/shacl#minCount> "1"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:N9aefa2b32e324688afe8efce6b6dc58e <http://www.w3.org/ns/shacl#resultSeverity> <http://www.w3.org/ns/shacl#Warning> .
+_:n135e95484bc14173b412474dd9ad5ebfb3 <http://www.w3.org/ns/shacl#datatype> <http://www.w3.org/2001/XMLSchema#integer> .
+_:N0ffa6fdf2b2d4f698fe1b0ed7c7deac5 <http://www.w3.org/ns/shacl#value> "bob.example.org" .
+_:n135e95484bc14173b412474dd9ad5ebfb3 <http://www.w3.org/ns/shacl#path> <http://example.org/ns#age> .
+_:N9aefa2b32e324688afe8efce6b6dc58e <http://www.w3.org/ns/shacl#resultPath> _:n135e95484bc14173b412474dd9ad5ebfb12 .
+_:N0ffa6fdf2b2d4f698fe1b0ed7c7deac5 <http://www.w3.org/ns/shacl#sourceShape> _:n135e95484bc14173b412474dd9ad5ebfb2 .
+_:N0ffa6fdf2b2d4f698fe1b0ed7c7deac5 <http://www.w3.org/ns/shacl#resultMessage> "Email address must contain exactly one @"@en .
+_:N31224af2043a4231a9bed21f9d436352 <http://www.w3.org/ns/shacl#sourceConstraintComponent> <http://www.w3.org/ns/shacl#MinCountConstraintComponent> .
+_:Nb7455dd1ee6b4dfcb3a4f1bf8f5d24f1 <http://www.w3.org/ns/shacl#result> _:N01b72b326f3b483eb05e9e816ae377f9 .
+_:N19a2147cb2044c51ae00d8580f592c06 <http://www.w3.org/ns/shacl#sourceConstraintComponent> <http://www.w3.org/ns/shacl#MaxCountConstraintComponent> .
+_:N53a8216ab7b94fe9b17c1b521544aa96 <http://www.w3.org/ns/shacl#resultPath> <http://example.org/ns#age> .
+_:N19a2147cb2044c51ae00d8580f592c06 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/shacl#ValidationResult> .
+_:N19a2147cb2044c51ae00d8580f592c06 <http://www.w3.org/ns/shacl#resultPath> <http://example.org/ns#name> .
+_:Nb7455dd1ee6b4dfcb3a4f1bf8f5d24f1 <http://www.w3.org/ns/shacl#result> _:N076d29840ca444b48282926d7ace7624 .
+_:N53a8216ab7b94fe9b17c1b521544aa96 <http://www.w3.org/ns/shacl#resultSeverity> <http://www.w3.org/ns/shacl#Violation> .
+_:N53a8216ab7b94fe9b17c1b521544aa96 <http://www.w3.org/ns/shacl#focusNode> <http://example.org/ns#bob> .
+_:N01b72b326f3b483eb05e9e816ae377f9 <http://www.w3.org/ns/shacl#resultPath> <http://example.org/ns#worksFor> .
+_:Nb7455dd1ee6b4dfcb3a4f1bf8f5d24f1 <http://www.w3.org/ns/shacl#result> _:N9be40f27c5ec4cbdb0ed797f50996bc3 .
+_:N14b2c197bb3e40ad93b1a1cb006a93ab <http://www.w3.org/ns/shacl#inversePath> <http://example.org/ns#worksFor> .
+_:N31224af2043a4231a9bed21f9d436352 <http://www.w3.org/ns/shacl#sourceShape> _:n135e95484bc14173b412474dd9ad5ebfb4 .
+_:N62e313f9645b40cfa229c383a81c5160 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/shacl#ValidationResult> .
+_:n135e95484bc14173b412474dd9ad5ebfb1 <http://www.w3.org/ns/shacl#path> <http://example.org/ns#name> .
+_:N62e313f9645b40cfa229c383a81c5160 <http://www.w3.org/ns/shacl#resultSeverity> <http://www.w3.org/ns/shacl#Violation> .
+_:N7c4082f7c0024892876dffd9038d1866 <http://www.w3.org/ns/shacl#resultSeverity> <http://www.w3.org/ns/shacl#Violation> .
+_:N7c4082f7c0024892876dffd9038d1866 <http://www.w3.org/ns/shacl#focusNode> <http://example.org/ns#bob> .
+_:Nb7455dd1ee6b4dfcb3a4f1bf8f5d24f1 <http://www.w3.org/ns/shacl#conforms> "false"^^<http://www.w3.org/2001/XMLSchema#boolean> .

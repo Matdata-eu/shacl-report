@@ -1,0 +1,24 @@
+@prefix ex:  <http://example.org/ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:alice a ex:Person ;
+    ex:name "Alice" ;
+    ex:email "alice@example.org" ;
+    ex:age 34 ;
+    ex:worksFor ex:matdata .
+
+ex:bob a ex:Person ;
+    ex:email "bob.example.org" ;
+    ex:age 212 ;
+    ex:worksFor ex:carol .
+
+ex:carol a ex:Person ;
+    ex:name "Carol", "Caroline" ;
+    ex:age "thirty" .
+
+ex:matdata a ex:Organisation ;
+    ex:name "Matdata" ;
+    ex:address [ ex:country "BE" ] .
+
+ex:acme a ex:Organisation ;
+    ex:address [ ex:country "DE" ] .

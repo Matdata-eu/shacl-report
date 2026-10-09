@@ -1,0 +1,110 @@
+@prefix ex: <http://example.org/ns#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[] a sh:ValidationReport ;
+    sh:conforms false ;
+    sh:result [ a sh:ValidationResult ;
+            sh:focusNode ex:bob ;
+            sh:resultMessage "Value does not have class ex:Organisation" ;
+            sh:resultPath ex:worksFor ;
+            sh:resultSeverity sh:Warning ;
+            sh:sourceConstraintComponent sh:ClassConstraintComponent ;
+            sh:sourceShape ex:PersonWorksForShape ;
+            sh:value ex:carol ],
+        [ a sh:ValidationResult ;
+            sh:focusNode ex:carol ;
+            sh:resultMessage "More than 1 values on ex:carol->ex:name" ;
+            sh:resultPath ex:name ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:MaxCountConstraintComponent ;
+            sh:sourceShape _:nd96eff139bbc4ea78aa215ff40954a71b1 ],
+        [ a sh:ValidationResult ;
+            sh:focusNode ex:bob ;
+            sh:resultMessage "Email address must contain exactly one @"@en ;
+            sh:resultPath ex:email ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:PatternConstraintComponent ;
+            sh:sourceShape [ sh:message "Email address must contain exactly one @"@en ;
+                    sh:path ex:email ;
+                    sh:pattern "^[^@]+@[^@]+$" ] ;
+            sh:value "bob.example.org" ],
+        [ a sh:ValidationResult ;
+            sh:focusNode ex:carol ;
+            sh:resultMessage "Value is not >= Literal(\"0\", datatype=xsd:integer)" ;
+            sh:resultPath ex:age ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:MinInclusiveConstraintComponent ;
+            sh:sourceShape _:nd96eff139bbc4ea78aa215ff40954a71b3 ;
+            sh:value "thirty" ],
+        [ a sh:ValidationResult ;
+            sh:focusNode ex:bob ;
+            sh:resultMessage "Value is not <= Literal(\"150\", datatype=xsd:integer)" ;
+            sh:resultPath ex:age ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:MaxInclusiveConstraintComponent ;
+            sh:sourceShape _:nd96eff139bbc4ea78aa215ff40954a71b3 ;
+            sh:value 212 ],
+        [ a sh:ValidationResult ;
+            sh:focusNode ex:carol ;
+            sh:resultMessage "Value is not Literal with datatype xsd:integer" ;
+            sh:resultPath ex:age ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:DatatypeConstraintComponent ;
+            sh:sourceShape _:nd96eff139bbc4ea78aa215ff40954a71b3 ;
+            sh:value "thirty" ],
+        [ a sh:ValidationResult ;
+            sh:focusNode ex:acme ;
+            sh:resultMessage "Value Literal(\"DE\") not in list ['Literal(\"BE\")', 'Literal(\"LU\")', 'Literal(\"NL\")']" ;
+            sh:resultPath ( ex:address ex:country ) ;
+            sh:resultSeverity sh:Info ;
+            sh:sourceConstraintComponent sh:InConstraintComponent ;
+            sh:sourceShape [ sh:in ( "BE" "NL" "LU" ) ;
+                    sh:path ( ex:address ex:country ) ;
+                    sh:severity sh:Info ] ;
+            sh:value "DE" ],
+        [ a sh:ValidationResult ;
+            sh:focusNode ex:acme ;
+            sh:resultMessage "Less than 1 values on ex:acme->ex:name" ;
+            sh:resultPath ex:name ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:MinCountConstraintComponent ;
+            sh:sourceShape [ sh:minCount 1 ;
+                    sh:path ex:name ] ],
+        [ a sh:ValidationResult ;
+            sh:focusNode ex:carol ;
+            sh:resultMessage "Value is not <= Literal(\"150\", datatype=xsd:integer)" ;
+            sh:resultPath ex:age ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:MaxInclusiveConstraintComponent ;
+            sh:sourceShape _:nd96eff139bbc4ea78aa215ff40954a71b3 ;
+            sh:value "thirty" ],
+        [ a sh:ValidationResult ;
+            sh:focusNode ex:bob ;
+            sh:resultMessage "Less than 1 values on ex:bob->ex:name" ;
+            sh:resultPath ex:name ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:MinCountConstraintComponent ;
+            sh:sourceShape _:nd96eff139bbc4ea78aa215ff40954a71b1 ],
+        [ a sh:ValidationResult ;
+            sh:focusNode ex:acme ;
+            sh:resultMessage "Organisation has no employees" ;
+            sh:resultPath [ sh:inversePath ex:worksFor ] ;
+            sh:resultSeverity sh:Warning ;
+            sh:sourceConstraintComponent sh:MinCountConstraintComponent ;
+            sh:sourceShape [ sh:message "Organisation has no employees" ;
+                    sh:minCount 1 ;
+                    sh:path [ sh:inversePath ex:worksFor ] ;
+                    sh:severity sh:Warning ] ] .
+
+_:nd96eff139bbc4ea78aa215ff40954a71b1 sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:minCount 1 ;
+    sh:path ex:name .
+
+_:nd96eff139bbc4ea78aa215ff40954a71b3 sh:datatype xsd:integer ;
+    sh:maxInclusive 150 ;
+    sh:minInclusive 0 ;
+    sh:path ex:age .
+

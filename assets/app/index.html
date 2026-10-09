@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SHACL report</title>
+    <link rel="stylesheet" href="/assets/vendor/tabulator/tabulator.min.css" />
+    <link rel="stylesheet" href="/assets/app/styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>shacl-report <span id="version" class="version"></span></h1>
+      <span id="conforms" class="conforms hidden"></span>
+      <div id="meta" class="meta"></div>
+      <div class="controls">
+        <span id="severity-chips" class="chips"></span>
+        <input id="search" type="search" placeholder="Search all columns…" />
+        <label class="inline">Group by
+          <select id="group-by">
+            <option value="">Nothing</option>
+            <option value="shape_label" selected>Shape</option>
+            <option value="focus_key">Focus node</option>
+            <option value="component_short">Constraint</option>
+            <option value="path_text">Path</option>
+            <option value="severity">Severity</option>
+          </select>
+        </label>
+        <button id="download-csv" class="ghost" title="Download the visible rows as CSV">CSV</button>
+        <button id="open-load" class="ghost hidden">Load files…</button>
+      </div>
+    </header>
+    <div id="loader" class="loader hidden">
+      <h2>Load a SHACL validation report</h2>
+      <label>Report file <input id="path-report" type="text" placeholder="/path/to/report.ttl" /></label>
+      <label>Data graph (optional, comma-separated) <input id="path-data" type="text" placeholder="/path/to/data.ttl" /></label>
+      <label>Shapes graph (optional, comma-separated) <input id="path-shapes" type="text" placeholder="/path/to/shapes.ttl" /></label>
+      <button id="do-load">Load</button>
+      <div id="loader-msg"></div>
+    </div>
+    <main>
+      <aside id="sidebar" class="sidebar">
+        <section>
+          <h2>Shapes</h2>
+          <ul id="shape-list" class="facet"></ul>
+        </section>
+        <section>
+          <h2>Constraints</h2>
+          <ul id="component-list" class="facet"></ul>
+        </section>
+      </aside>
+      <div class="center">
+        <div id="empty-state" class="empty hidden"></div>
+        <div id="table" class="table"></div>
+      </div>
+      <aside id="details" class="details hidden">
+        <div class="details-head">
+          <h2>Result details</h2>
+          <button id="close-details" class="ghost" title="Close">✕</button>
+        </div>
+        <div id="details-body"></div>
+      </aside>
+      <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="spinner"></div>
+        <p id="loading-msg">Loading report…</p>
+      </div>
+    </main>
+    <script src="/assets/vendor/tabulator/tabulator.min.js"></script>
+    <!--REPORT-DATA-->
+    <script src="/assets/app/app.js"></script>
+  </body>
+</html>
