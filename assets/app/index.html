@@ -6,7 +6,7 @@
     <meta name="color-scheme" content="light dark" />
     <title>SHACL report</title>
     <link rel="stylesheet" href="/assets/vendor/tabulator/tabulator.min.css" />
-    <link rel="stylesheet" href="/assets/vendor/yasgui/yasgui.min.css" />
+    <link rel="stylesheet" href="/assets/vendor/matgui/matgui.min.css" />
     <link rel="stylesheet" href="/assets/app/styles.css" />
   </head>
   <body>
@@ -181,7 +181,7 @@
         <button type="submit" class="btn primary">Use endpoint</button>
       </form>
       <p id="endpoint-status" class="endpoint-status"></p>
-      <div id="yasgui" class="yasgui-host"><div class="empty-results"><h3>SPARQL editor</h3><p>Use the run buttons in the Shapes view to open a constraint as a query here, or write your own.</p></div></div>
+      <div id="yasgui" class="yasgui-host"><div class="empty-results"><h3>SPARQL editor</h3><p>Run a rule from the Shapes view, Ctrl+click any IRI in the report to describe it (Ctrl+Shift+click for the triples that point to it), or write your own query.</p></div></div>
     </div>
 
     <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
@@ -241,7 +241,7 @@
     <div id="loading" class="loading hidden"><div class="spinner"></div><p id="loading-msg">Loading report…</p></div>
 
     <script src="/assets/vendor/tabulator/tabulator.min.js"></script>
-    <script src="/assets/vendor/yasgui/yasgui.min.js"></script>
+    <script src="/assets/vendor/matgui/matgui.min.js"></script>
     <script src="/assets/app/sparql.js"></script>
     <script src="/assets/app/shapes.js"></script>
     <!--REPORT-DATA-->

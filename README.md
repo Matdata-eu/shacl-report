@@ -17,7 +17,7 @@ node's own triples next to each result.
 
 ![Shapes explorer](screenshot-shapes.png)
 
-![A shape's rules running as SPARQL in the embedded YASGUI editor](screenshot-sparql.png)
+![A shape's rules running as SPARQL in the embedded MatGUI editor](screenshot-sparql.png)
 
 <details><summary>Dark theme</summary>
 
@@ -67,7 +67,7 @@ node's own triples next to each result.
   - SPARQL constraints (`sh:sparql`) and custom SPARQL-based constraint
     components (`sh:ConstraintComponent` validators), with their queries;
   - links between shapes and results in both directions.
-- **SPARQL editor** ([YASGUI](https://github.com/zazuko/Yasgui), bundled):
+- **SPARQL editor** ([MatGUI](https://github.com/Matdata-eu/MatGUI), bundled):
   point it at the SPARQL endpoint that holds your data and run, with one click,
   - a generated query that finds the violations of a single rule or of a whole
     shape, scoped to the shape's focus nodes;
@@ -75,6 +75,11 @@ node's own triples next to each result.
     `$currentShape` and parameters substituted, `sh:prefixes` declared and
     `$this` bound to the shape's targets;
   - the focus nodes of a shape.
+
+- **Describe any IRI**, as in MatGUI: Ctrl+click (Cmd+click on a Mac) an IRI
+  anywhere in the report, the details panel or the shapes explorer to load its
+  triples from the endpoint into MatGUI's Turtle view; Ctrl+Shift+click loads
+  the triples that point to it. Ctrl+click IRIs in that view to keep exploring.
 
   In the local viewer, queries can be relayed through `shacl-report` so
   endpoints that do not send CORS headers work too.
@@ -154,7 +159,7 @@ shacl-report serve --report report.ttl --shapes shapes.ttl --data data.ttl \
 shacl-report serve --report report.ttl --bind 127.0.0.1:8080 --no-open
 ```
 
-The viewer runs entirely offline — all assets (Tabulator, YASGUI) are bundled
+The viewer runs entirely offline — all assets (Tabulator, MatGUI) are bundled
 inside the binary. Only the SPARQL editor talks to the endpoint you give it.
 
 #### Shapes and SPARQL
@@ -274,5 +279,5 @@ Test fixtures in `tests/fixtures/` were produced with pyshacl from
 ## License
 
 Apache-2.0. Bundles [Tabulator](https://tabulator.info) (MIT) and
-[YASGUI](https://github.com/zazuko/Yasgui) (MIT, see
-`assets/vendor/yasgui/NOTICE.md`).
+[MatGUI](https://github.com/Matdata-eu/MatGUI) (MIT, see
+`assets/vendor/matgui/NOTICE.md`).

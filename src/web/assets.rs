@@ -43,14 +43,14 @@ pub static ASSETS: &[Asset] = &[
         "assets/app/shapes.js"
     ),
     txt!(
-        "/assets/vendor/yasgui/yasgui.min.js",
+        "/assets/vendor/matgui/matgui.min.js",
         "application/javascript",
-        "assets/vendor/yasgui/yasgui.min.js"
+        "assets/vendor/matgui/matgui.min.js"
     ),
     txt!(
-        "/assets/vendor/yasgui/yasgui.min.css",
+        "/assets/vendor/matgui/matgui.min.css",
         "text/css; charset=utf-8",
-        "assets/vendor/yasgui/yasgui.min.css"
+        "assets/vendor/matgui/matgui.min.css"
     ),
     txt!(
         "/assets/vendor/tabulator/tabulator.min.js",

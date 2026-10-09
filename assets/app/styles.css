@@ -581,15 +581,10 @@ pre.query { margin: 0; padding: 10px 12px; font-family: var(--mono); font-size: 
 .endpoint-status.warn { color: var(--warning); }
 .yasgui-host { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 10px 10px; min-height: 200px; }
 .yasgui-host > .empty-results { border: none; }
-/* Our endpoint bar replaces YASGUI's own. */
+/* Our endpoint bar replaces MatGUI's own. */
 .yasgui .controlbar, .yasgui .yasqe_share { display: none !important; }
 .yasgui .tabsList a { font-size: 13px; }
 .yasgui .yasr .yasr_header { flex-wrap: wrap; }
-:root[data-theme="dark"] .yasgui, :root[data-theme="dark"] .yasgui .CodeMirror { color-scheme: dark; }
-:root[data-theme="dark"] .yasgui-host { filter: invert(0.88) hue-rotate(180deg); background: #fff; border-color: #ddd; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .yasgui-host { filter: invert(0.88) hue-rotate(180deg); background: #fff; border-color: #ddd; }
-}
 
 /* ---------- responsive ---------- */
 /* The summary and toolbar respond to the space left by the filters and drawer. */
@@ -645,3 +640,7 @@ pre.query { margin: 0; padding: 10px 12px; font-family: var(--mono); font-size: 
   .sparql-view { padding: 12px 12px 24px; }
   .yasgui-host { padding: 4px; }
 }
+
+/* ---------- describe (Ctrl+click an IRI) ---------- */
+.describe-mode [data-iri] { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; color: var(--accent); }
+.d-tip { margin: 12px 0 0; color: var(--faint); font-size: 12.5px; }
