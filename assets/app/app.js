@@ -129,12 +129,15 @@
   const TOKEN_RE = /<([A-Za-z][\w+.\-]*:[^\s<>"]*)>/g;
   const tokensToText = (s) => (s ? s.replace(TOKEN_RE, (_, iri) => iriText(iri)) : "");
 
+  const DESCRIBE_HINT = "Ctrl+click: describe · Ctrl+Shift+click: where it is used";
+
   function iriHtml(iri, link) {
     const text = esc(iriText(iri));
+    const attrs = `data-iri="${esc(iri)}" title="${esc(iri)}\n${DESCRIBE_HINT}"`;
     if (link && /^https?:\/\//i.test(iri)) {
-      return `<a href="${esc(iri)}" target="_blank" rel="noopener noreferrer" title="${esc(iri)}">${text}</a>`;
+      return `<a href="${esc(iri)}" target="_blank" rel="noopener noreferrer" ${attrs}>${text}</a>`;
     }
-    return `<span class="iri" title="${esc(iri)}">${text}</span>`;
+    return `<span class="iri" ${attrs}>${text}</span>`;
   }
 
   function tokensToHtml(s, link) {
@@ -526,7 +529,7 @@
     return `<button class="row ${SEV_CLASS[d.sev]}${sel}" data-id="${d.id}">
       <span class="row-bar"></span>
       <span class="row-main">
-        <span class="row-top"><span class="row-focus" title="${esc(d.focus.v)}">${primary}</span><span class="row-problem">${secondary}</span></span>
+        <span class="row-top"><span class="row-focus"${state.groupBy !== "resource" && d.focus.t === "iri" ? ` data-iri="${esc(d.focus.v)}"` : ""} title="${esc(d.focus.v)}">${primary}</span><span class="row-problem">${secondary}</span></span>
         <span class="row-text">${d.explanation}</span>
         ${msg}
       </span>
@@ -724,6 +727,7 @@
         }
       }
     }
+    if (d.focus.t === "iri") h += `<p class="d-tip">Tip: Ctrl+click any IRI to see its triples from your SPARQL endpoint; Ctrl+Shift+click shows the triples that point to it.</p>`;
     h += `</section>`;
 
     const same = state.byFocus.get(d.focusKey) || [];
@@ -894,7 +898,20 @@
     else document.documentElement.removeAttribute("data-theme");
     const dark = t ? t === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
     els.themeBtn.innerHTML = dark ? ICON.sun : ICON.moon;
+    if (state.editor) state.editor.setTheme(dark ? "dark" : "light");
     els.themeBtn.title = dark ? "Switch to light theme" : "Switch to dark theme";
+  }
+
+  function currentTheme() {
+    const t = storedTheme();
+    return t || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  }
+
+  /** Ctrl+click (Cmd+click on a Mac) on any IRI describes it in MatGUI. */
+  function describe(iri, asObject) {
+    if (!state.editor) return;
+    switchTab("sparql");
+    state.editor.describe(iri, asObject);
   }
 
   function toggleTheme() {
@@ -949,11 +966,21 @@
     els.filters.classList.remove("hidden");
     const hasReport = report.has_report !== false;
     const hasShapes = !!report.shapes;
-    els.tabs.classList.toggle("hidden", !hasShapes && !hasReport);
+    els.tabs.classList.toggle("hidden", false);
     els.tabs.querySelector('[data-tab="results"]').classList.toggle("hidden", !hasReport);
     els.tabs.querySelector('[data-tab="shapes"]').classList.toggle("hidden", !hasShapes);
-    els.tabs.querySelector('[data-tab="sparql"]').classList.toggle("hidden", !hasShapes);
+    els.tabs.querySelector('[data-tab="sparql"]').classList.toggle("hidden", false);
     els.exportMenu.querySelector('[data-export="csv"]').classList.toggle("hidden", !hasReport);
+    if (!state.editor) {
+      state.editor = new window.ShaclSparql.Editor(els.sparqlView, {
+        server: !state.standalone,
+        preset: report.sparql_endpoint,
+        toast,
+        theme: currentTheme,
+        shorten: iriText,
+        onNeedEndpoint: () => toast("Enter the SPARQL endpoint of your data; the query runs as soon as you press Use endpoint"),
+      });
+    }
     if (hasShapes) {
       if (!state.explorer) {
         state.explorer = window.ShaclShapes.create({
@@ -972,14 +999,6 @@
             switchTab("sparql");
             state.editor.open(name, query);
           },
-        });
-      }
-      if (!state.editor) {
-        state.editor = new window.ShaclSparql.Editor(els.sparqlView, {
-          server: !state.standalone,
-          preset: report.sparql_endpoint,
-          toast,
-          onNeedEndpoint: () => toast("Enter the SPARQL endpoint of your data; the query runs as soon as you press Use endpoint"),
         });
       }
       state.explorer.setModel(report.shapes, state.rows, hasReport);
@@ -1158,6 +1177,25 @@
       }
     });
     window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => applyTheme(storedTheme()));
+
+    // MatGUI-style describe: Ctrl+click an IRI for its triples, Ctrl+Shift+click
+    // for the triples that point to it. MatGUI handles clicks inside itself.
+    document.addEventListener(
+      "click",
+      (e) => {
+        if (!(e.ctrlKey || e.metaKey) || e.button !== 0) return;
+        const el = e.target.closest("[data-iri]");
+        if (!el || el.closest("#yasgui") || !state.editor) return;
+        e.preventDefault();
+        e.stopPropagation();
+        describe(el.dataset.iri, e.shiftKey);
+      },
+      true,
+    );
+    const describeMode = (e) => document.body.classList.toggle("describe-mode", (e.ctrlKey || e.metaKey) && !!state.editor);
+    document.addEventListener("keydown", describeMode);
+    document.addEventListener("keyup", describeMode);
+    window.addEventListener("blur", () => document.body.classList.remove("describe-mode"));
   }
 
   function resetFilters() {

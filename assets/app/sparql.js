@@ -1,6 +1,6 @@
 // shacl-report: SPARQL support for the shapes explorer. Builds queries that
 // look for violations of SHACL Core constraints, prepares SPARQL-based
-// constraints for running outside a validator, and wraps the embedded YASGUI
+// constraints for running outside a validator, and wraps the embedded MatGUI
 // editor with an endpoint bar.
 (function () {
   "use strict";
@@ -296,7 +296,7 @@
   }
 
   /**
-   * The SPARQL tab: an endpoint bar plus an embedded YASGUI. In server mode
+   * The SPARQL tab: an endpoint bar plus an embedded MatGUI. In server mode
    * requests can go through the local /api/sparql relay, which avoids CORS
    * problems with endpoints that do not allow browser access.
    */
@@ -306,6 +306,8 @@
       this.server = !!opts.server;
       this.onNeedEndpoint = opts.onNeedEndpoint || (() => {});
       this.toast = opts.toast || (() => {});
+      this.theme = opts.theme || (() => "light");
+      this.shorten = opts.shorten || ((iri) => `<${iri}>`);
       this.yasgui = null;
       this.endpointInput = root.querySelector("#endpoint");
       this.proxyInput = root.querySelector("#endpoint-proxy");
@@ -331,7 +333,7 @@
       return this.endpointInput.value.trim();
     }
 
-    /** The URL YASGUI should send requests to. */
+    /** The URL MatGUI should send requests to. */
     requestUrl() {
       const ep = this.endpoint;
       if (!ep) return "";
@@ -368,9 +370,9 @@
       if (announce && this.endpoint) this.toast("Endpoint saved");
       // Run the query that was waiting for an endpoint.
       if (this.pending && this.endpoint && /^https?:\/\//i.test(this.endpoint)) {
-        const { tab, query } = this.pending;
+        const { tab, query, plugin, onEmpty } = this.pending;
         this.pending = null;
-        this.run(tab, query);
+        this.run(tab, query, plugin, onEmpty);
       }
     }
 
@@ -384,6 +386,10 @@
       this.host.innerHTML = "";
       this.yasgui = new Y(this.host, {
         requestConfig: { endpoint: this.requestUrl(), method: "POST" },
+        theme: this.theme(),
+        showThemeToggle: false,
+        showSnippetsBar: false,
+        endpointDescribe: { enabled: false },
         copyEndpointOnNewTab: true,
         persistenceId: null,
         populateFromUrl: false,
@@ -395,32 +401,68 @@
       return this.yasgui;
     }
 
+    /** Follow the viewer's light or dark theme. */
+    setTheme(theme) {
+      if (this.yasgui && this.yasgui.themeManager) this.yasgui.themeManager.setTheme(theme);
+    }
+
+    /**
+     * Describe an IRI the way MatGUI does on Ctrl+click: the triples where it
+     * is the subject, or (asObject, Ctrl+Shift+click) where it is the object,
+     * shown in MatGUI's Turtle view. Ctrl+click on IRIs there explores further.
+     */
+    describe(iri, asObject) {
+      const query = asObject
+        ? `CONSTRUCT { ?s ?p <${iri}> } WHERE { ?s ?p <${iri}> } LIMIT 1000`
+        : `CONSTRUCT { <${iri}> ?p ?o } WHERE { <${iri}> ?p ?o }`;
+      // N-Triples keeps every IRI in angle brackets, which is what MatGUI's
+      // Turtle view needs to follow it with another Ctrl+click.
+      const label = this.shorten(iri);
+      this.open(`${asObject ? "Used by" : "Describe"} ${label}`, query, "response", {
+        acceptHeaderGraph: "application/n-triples,text/turtle;q=0.9,*/*;q=0.5",
+      }, () => this.toast(asObject ? `Nothing in the endpoint points to ${label}` : `The endpoint has no triples about ${label}`));
+    }
+
     /** Open `query` in a new editor tab and run it when an endpoint is set. */
-    open(name, query) {
+    open(name, query, plugin, request, onEmpty) {
       const y = this.ensure();
       if (!y) return;
       const tab = y.addTab(true, {
         name: name.length > 40 ? name.slice(0, 39) + "…" : name,
         yasqe: { value: query },
-        requestConfig: { ...y.config.requestConfig, endpoint: this.requestUrl() },
+        requestConfig: { ...y.config.requestConfig, ...(request || {}), endpoint: this.requestUrl() },
       });
       if (!this.endpoint) {
-        this.pending = { tab, query };
+        this.pending = { tab, query, plugin, onEmpty };
         this.onNeedEndpoint();
         this.endpointInput.focus();
         return;
       }
-      this.run(tab, query);
+      this.run(tab, query, plugin, onEmpty);
     }
 
-    run(tab, query) {
+    run(tab, query, plugin, onEmpty) {
       const y = this.yasgui;
       // The editor is created asynchronously; wait for it before querying.
       const attempt = (tries) => {
         const t = typeof tab.getId === "function" ? y.getTab(tab.getId()) : tab;
         if (t && t.getYasqe && t.getYasqe()) {
           t.getYasqe().setValue(query);
-          t.query().catch(() => {});
+          const done = t.query();
+          if (plugin) {
+            Promise.resolve(done)
+              .then(() => {
+                const yasr = t.getYasr && t.getYasr();
+                if (yasr && yasr.plugins && yasr.plugins[plugin]) yasr.selectPlugin(plugin);
+                if (onEmpty && yasr && yasr.results && !yasr.results.getError()) {
+                  const text = String(yasr.results.getOriginalResponseAsString() || "").trim();
+                  if (!text || (text.startsWith("{") && /"content"\s*:\s*""/.test(text))) onEmpty();
+                }
+              })
+              .catch(() => {});
+          } else if (done && done.catch) {
+            done.catch(() => {});
+          }
         } else if (tries > 0) {
           setTimeout(() => attempt(tries - 1), 50);
         }
