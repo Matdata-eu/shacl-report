@@ -19,8 +19,27 @@ fn iri(base: &str, local: &str) -> NamedNode {
     NamedNode::new_unchecked(format!("{base}{local}"))
 }
 
+/// Test files get IRIs relative to the crate root, with `/` separators, so
+/// they also parse on Windows, where absolute paths contain `\\` and `D:`.
+const FILE_BASE: &str = "file:///shacl-report/";
+
+fn file_iri(path: &Path) -> String {
+    let rel = path
+        .strip_prefix(env!("CARGO_MANIFEST_DIR"))
+        .unwrap_or(path)
+        .components()
+        .map(|c| c.as_os_str().to_string_lossy().into_owned())
+        .collect::<Vec<_>>()
+        .join("/");
+    format!("{FILE_BASE}{rel}")
+}
+
+fn iri_path(iri: &str) -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join(iri.strip_prefix(FILE_BASE).unwrap())
+}
+
 fn load(path: &Path) -> (Graph, String) {
-    let base = format!("file://{}", path.canonicalize().unwrap().display());
+    let base = file_iri(path);
     let mut g = Graph::new();
     let text = std::fs::read(path).unwrap();
     for t in oxttl::TurtleParser::new()
@@ -73,7 +92,7 @@ fn test_files(manifest: &Path, out: &mut Vec<PathBuf>) {
     }
     for inc in includes {
         let Term::NamedNode(n) = inc else { continue };
-        let file = PathBuf::from(n.as_str().strip_prefix("file://").unwrap());
+        let file = iri_path(n.as_str());
         test_files(&file, out);
     }
 }
@@ -137,7 +156,7 @@ fn run_suite(manifest: &str) -> (usize, Vec<String>) {
                 if n.as_str() == base {
                     g.clone()
                 } else {
-                    load(Path::new(n.as_str().strip_prefix("file://").unwrap())).0
+                    load(&iri_path(n.as_str())).0
                 }
             };
             let data = graph_of("dataGraph");
