@@ -326,6 +326,7 @@
     if (src.shapes && src.shapes.length) srcParts.push(`Shapes: ${src.shapes.map(base).join(", ")}`);
     if (src.data && src.data.length) srcParts.push(`Data: ${src.data.map(base).join(", ")}`);
     if (!r.has_shapes) srcParts.push("Add the shapes file for shape names and broken rules");
+    if (r.validation) srcParts.push(`Validated by ${r.validation.engine} in ${r.validation.millis} ms`);
     els.statusCard.className = `card status-card ${cls}`;
     els.statusCard.innerHTML = `<div class="status-icon">${icon}</div><div><p class="status-title">${title}</p><p class="status-sub">${sub}</p><p class="status-sources">${esc(srcParts.join(" · "))}</p></div>`;
 
@@ -780,10 +781,26 @@
     const msg = form.querySelector(".form-msg");
     const pathReport = form.querySelector("[name=path-report]");
     const pathShapes = form.querySelector("[name=path-shapes]");
+    const pathData = form.querySelector("[name=path-data]");
+    const validating = () => form.dataset.mode === "validate";
 
     const refresh = () => {
-      submit.disabled = !(files.report.length || files.shapes.length || pathReport.value.trim() || pathShapes.value.trim());
+      const report = !validating() && (files.report.length || pathReport.value.trim());
+      const shapes = files.shapes.length || pathShapes.value.trim();
+      const data = files.data.length || pathData.value.trim();
+      submit.disabled = !(report || shapes);
+      submit.textContent = !report && shapes && data ? "Validate" : "Open";
     };
+
+    const setMode = (mode) => {
+      form.dataset.mode = mode;
+      for (const b of form.querySelectorAll(".mode-switch button")) b.setAttribute("aria-checked", String(b.dataset.mode === mode));
+      try { localStorage.setItem("shacl-report-open-mode", mode); } catch (_) {}
+      refresh();
+    };
+    for (const b of form.querySelectorAll(".mode-switch button")) b.addEventListener("click", () => setMode(b.dataset.mode));
+    let savedMode = null;
+    try { savedMode = localStorage.getItem("shacl-report-open-mode"); } catch (_) {}
 
     for (const drop of form.querySelectorAll(".drop")) {
       const slotName = drop.dataset.slot;
@@ -807,34 +824,39 @@
     }
     pathReport.addEventListener("input", refresh);
     pathShapes.addEventListener("input", refresh);
+    pathData.addEventListener("input", refresh);
+    setMode(savedMode === "report" ? "report" : "validate");
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       msg.className = "form-msg busy";
-      msg.textContent = "Opening…";
+      const willValidate = submit.textContent === "Validate";
+      msg.textContent = willValidate ? "Validating…" : "Opening…";
       submit.disabled = true;
+      const reportPath = validating() ? "" : pathReport.value.trim();
+      const reportFile = validating() ? null : files.report[0] || null;
       try {
         let resp;
-        if (pathReport.value.trim() || pathShapes.value.trim()) {
+        if (reportPath || pathShapes.value.trim()) {
           const split = (s) => s.split(",").map((x) => x.trim()).filter(Boolean);
           resp = await fetch("/api/load", {
             method: "POST",
             headers: { "content-type": "application/json" },
             body: JSON.stringify({
-              report: pathReport.value.trim() || null,
+              report: reportPath || null,
               shapes: split(pathShapes.value),
-              data: split(form.querySelector("[name=path-data]").value),
+              data: split(pathData.value),
             }),
           });
         } else {
           const enc = async (f) => ({ name: f.name, content: await toBase64(f) });
           msg.textContent = "Reading files…";
           const body = {
-            report: files.report.length ? await enc(files.report[0]) : null,
+            report: reportFile ? await enc(reportFile) : null,
             shapes: await Promise.all(files.shapes.map(enc)),
             data: await Promise.all(files.data.map(enc)),
           };
-          msg.textContent = files.report.length ? "Analysing report…" : "Reading shapes…";
+          msg.textContent = reportFile ? "Analysing report…" : willValidate ? "Validating…" : "Reading shapes…";
           resp = await fetch("/api/upload", {
             method: "POST",
             headers: { "content-type": "application/json" },
@@ -956,7 +978,7 @@
     state.shapeKeys = null;
     const src = report.sources || {};
     const base = (p) => (p || "").split(/[\\/]/).pop();
-    els.fileName.textContent = report.has_report === false ? (src.shapes || []).map(base).join(", ") : base(src.report);
+    els.fileName.textContent = report.has_report === false || report.validation ? (src.data && src.data.length && report.validation ? src.data : src.shapes || []).map(base).join(", ") : base(src.report);
     document.title = `${els.fileName.textContent || "SHACL report"} · shacl-report`;
     els.welcome.classList.add("hidden");
     els.exportBtn.parentElement.classList.remove("hidden");
@@ -970,6 +992,7 @@
     els.tabs.querySelector('[data-tab="shapes"]').classList.toggle("hidden", !hasShapes);
     els.tabs.querySelector('[data-tab="sparql"]').classList.toggle("hidden", false);
     els.exportMenu.querySelector('[data-export="csv"]').classList.toggle("hidden", !hasReport);
+    els.exportMenu.querySelector('[data-export="ttl"]').classList.toggle("hidden", state.standalone || !report.validation);
     if (!state.editor) {
       state.editor = new window.ShaclSparql.Editor(els.sparqlView, {
         server: !state.standalone,
@@ -1050,7 +1073,7 @@
     els.results.classList.add("hidden");
     els.filters.classList.add("hidden");
     els.exportBtn.parentElement.classList.add("hidden");
-    els.welcome.innerHTML = `<div class="welcome-hero"><h1>Make sense of SHACL reports and shapes</h1><p>See which shapes fail and why in plain language, explore every rule in your shapes, and run them as SPARQL against your triple store.</p></div><div id="welcome-form"></div>`;
+    els.welcome.innerHTML = `<div class="welcome-hero"><h1>Validate RDF with SHACL, and make sense of the results</h1><p>Check your data against SHACL shapes right here, or open a report from any validator. See which shapes fail and why in plain language, explore every rule, and run it as SPARQL against your triple store.</p></div><div id="welcome-form"></div>`;
     els.welcome.classList.remove("hidden");
     mountOpenForm(document.getElementById("welcome-form"));
   }
@@ -1162,6 +1185,7 @@
       els.exportMenu.classList.add("hidden");
       if (!state.report) return;
       if (b.dataset.export === "csv") exportCsv();
+      else if (b.dataset.export === "ttl") window.location.href = "/api/report.ttl";
       else window.location.href = "/api/export.html";
     });
     document.addEventListener("click", () => els.exportMenu.classList.add("hidden"));

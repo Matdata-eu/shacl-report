@@ -26,6 +26,8 @@ pub enum Command {
 #[derive(Debug, Clone, ClapArgs)]
 pub struct Args {
     /// SHACL validation report (an RDF file containing an sh:ValidationReport).
+    /// Leave it out and give --data and --shapes to validate with the
+    /// built-in SHACL engine instead.
     pub report: Option<PathBuf>,
 
     /// Data graph that was validated. Used to show the triples of each focus
@@ -41,6 +43,12 @@ pub struct Args {
     /// Override the input format of the report (auto-detected from extension by default).
     #[arg(long = "format", value_enum)]
     pub format: Option<InputFormat>,
+
+    /// Write the validation report to FILE as Turtle. Without a REPORT,
+    /// shacl-report validates --data against --shapes itself; this saves
+    /// that report for other tools.
+    #[arg(long = "save-report", value_name = "FILE")]
+    pub save_report: Option<PathBuf>,
 
     /// Write a self-contained HTML report to FILE (works offline, no server needed).
     #[arg(long = "html", value_name = "FILE")]

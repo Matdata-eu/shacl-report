@@ -204,7 +204,12 @@ fn loads_uploaded_files_from_memory() {
 fn advanced(report: bool) -> shacl_report::report::Report {
     load_report(&ReportInputs {
         report: report.then(|| fixtures("report-advanced.ttl")),
-        data: vec![fixtures("data.ttl")],
+        // Shapes plus data without a report would run the validator.
+        data: if report {
+            vec![fixtures("data.ttl")]
+        } else {
+            vec![]
+        },
         shapes: vec![fixtures("shapes-advanced.ttl")],
         format: None,
     })
@@ -307,4 +312,113 @@ fn html_export_embeds_shapes_and_sparql_editor() {
     assert!(html.contains("ShaclShapes"));
     assert!(html.contains("Yasgui"));
     assert!(!html.contains("<script src="));
+}
+
+/// The comparable part of each result: focus, path, value, component, severity.
+fn result_keys(r: &shacl_report::report::Report) -> Vec<String> {
+    let mut keys: Vec<String> = r
+        .results
+        .iter()
+        .map(|x| {
+            let term = |t: &shacl_report::report::TermDto| {
+                if t.t == "bnode" {
+                    "_".to_string()
+                } else {
+                    t.v.clone()
+                }
+            };
+            format!(
+                "{} {} {} {} {}",
+                term(&x.focus),
+                x.path.clone().unwrap_or_default(),
+                x.value.as_ref().map(term).unwrap_or_default(),
+                x.component.clone().unwrap_or_default(),
+                x.severity
+            )
+        })
+        .collect();
+    keys.sort();
+    keys
+}
+
+#[test]
+fn built_in_validator_matches_pyshacl() {
+    let mut i = inputs("report-pyshacl.ttl", true, true);
+    let expected = load_report(&i).unwrap();
+    i.report = None;
+    let ours = load_report(&i).unwrap();
+    assert!(ours.has_report);
+    assert!(ours.validation.is_some());
+    assert_eq!(ours.conforms, Some(false));
+    assert_eq!(result_keys(&ours), result_keys(&expected));
+    // Shapes and data still enrich the generated results.
+    assert!(ours.results.iter().all(|r| r.shape_key.is_some()));
+    assert!(!ours.focus.is_empty());
+}
+
+#[test]
+fn validates_from_the_cli_and_saves_the_report() {
+    let saved = std::env::temp_dir().join("shacl-report-generated.ttl");
+    let out = bin()
+        .args(["--ci", "--save-report"])
+        .arg(&saved)
+        .arg("--data")
+        .arg(fixtures("data.ttl"))
+        .arg("--shapes")
+        .arg(fixtures("shapes-advanced.ttl"))
+        .output()
+        .unwrap();
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert_eq!(out.status.code(), Some(1), "{err}");
+    assert!(err.contains("validated with shacl-report"), "{err}");
+    assert!(err.contains("conforms=false  results=12"), "{err}");
+
+    // The saved report is a regular report: it loads back with the same results.
+    let reloaded = load_report(&ReportInputs {
+        report: Some(saved.clone()),
+        data: vec![fixtures("data.ttl")],
+        shapes: vec![fixtures("shapes-advanced.ttl")],
+        format: None,
+    })
+    .unwrap();
+    let generated = load_report(&ReportInputs {
+        report: None,
+        data: vec![fixtures("data.ttl")],
+        shapes: vec![fixtures("shapes-advanced.ttl")],
+        format: None,
+    })
+    .unwrap();
+    assert_eq!(result_keys(&reloaded), result_keys(&generated));
+    std::fs::remove_file(saved).ok();
+
+    // --save-report only applies to a report shacl-report made itself.
+    let status = bin()
+        .arg(fixtures("report-pyshacl.ttl"))
+        .args(["--quiet", "--save-report"])
+        .arg(std::env::temp_dir().join("unused.ttl"))
+        .status()
+        .unwrap();
+    assert_eq!(status.code(), Some(2));
+}
+
+#[test]
+fn validates_uploaded_files() {
+    let file = |name: &str| shacl_report::input::MemoryFile {
+        name: name.to_string(),
+        content: std::fs::read(fixtures(name)).unwrap(),
+    };
+    let r = shacl_report::report::load_report_from_memory(
+        None,
+        &[file("shapes-advanced.ttl")],
+        &[file("data.ttl")],
+    )
+    .unwrap();
+    assert!(r.validation.is_some());
+    assert_eq!(r.stats.total, 12);
+    assert!(
+        r.report_turtle
+            .as_deref()
+            .unwrap()
+            .contains("sh:ValidationReport")
+    );
 }
