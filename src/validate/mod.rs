@@ -36,6 +36,16 @@ pub struct Validation {
 
 /// Validate `data` against the shapes in `shapes`.
 pub fn validate(data: &Graph, shapes: &Graph) -> Result<Validation> {
+    validate_until(data, shapes, None)
+}
+
+/// [`validate`], giving up with an error once `deadline` has passed. The
+/// check runs between focus nodes, so one slow node can overrun it.
+pub fn validate_until(
+    data: &Graph,
+    shapes: &Graph,
+    deadline: Option<std::time::Instant>,
+) -> Result<Validation> {
     let engine = Engine::new(data, shapes)?;
     let mut results = Vec::new();
     for id in engine.shapes_with_targets() {
@@ -44,6 +54,9 @@ pub fn validate(data: &Graph, shapes: &Graph) -> Result<Validation> {
             continue;
         }
         for focus in engine.focus_nodes(&id) {
+            if deadline.is_some_and(|d| std::time::Instant::now() > d) {
+                anyhow::bail!("validation took longer than this server allows");
+            }
             engine.validate_shape(&shape, &focus, &mut results)?;
         }
     }

@@ -102,15 +102,81 @@ pub struct ServeArgs {
     pub format: Option<InputFormat>,
     /// SPARQL endpoint holding the validated data; preset in the viewer's
     /// query editor for running SPARQL constraints and generated queries.
-    #[arg(long = "endpoint", value_name = "URL")]
+    #[arg(long = "endpoint", value_name = "URL", env = "SHACL_REPORT_ENDPOINT")]
     pub endpoint: Option<String>,
 
     /// Bind address for the web viewer.
-    #[arg(long, default_value = "127.0.0.1:0")]
+    #[arg(long, default_value = "127.0.0.1:0", env = "SHACL_REPORT_BIND")]
     pub bind: String,
     /// Do not auto-open the system browser.
     #[arg(long = "no-open")]
     pub no_open: bool,
+
+    #[command(flatten)]
+    pub public: PublicArgs,
+}
+
+/// Settings for running the viewer as a public, multi-user website.
+#[derive(Debug, Clone, ClapArgs)]
+#[command(next_help_heading = "Public server")]
+pub struct PublicArgs {
+    /// Serve many users safely: every visitor gets their own session, the
+    /// server never reads its own files or fetches URLs for visitors, the
+    /// SPARQL relay only reaches --allow-endpoint, and the limits below apply.
+    #[arg(long, env = "SHACL_REPORT_PUBLIC")]
+    pub public: bool,
+
+    /// Most visitors that can have files loaded at the same time. Others are
+    /// asked to try again later until a session ends or expires.
+    #[arg(long, default_value_t = 10, env = "SHACL_REPORT_MAX_SESSIONS")]
+    pub max_sessions: usize,
+
+    /// Most sessions one IP address can hold.
+    #[arg(long, default_value_t = 2, env = "SHACL_REPORT_MAX_SESSIONS_PER_IP")]
+    pub max_sessions_per_ip: usize,
+
+    /// Minutes without any request after which a session and its files are dropped.
+    #[arg(long, default_value_t = 30, env = "SHACL_REPORT_SESSION_IDLE_MINUTES")]
+    pub session_idle_minutes: u64,
+
+    /// Most uploads parsed or validated at the same time; the rest wait in
+    /// line for up to --queue-seconds. Each job uses one CPU core and, at the
+    /// default limits, up to about 1 GB of memory while it runs.
+    #[arg(long, default_value_t = 2, env = "SHACL_REPORT_MAX_JOBS")]
+    pub max_jobs: usize,
+
+    /// Longest an upload waits for a free job slot before the visitor is
+    /// told the server is busy.
+    #[arg(long, default_value_t = 30, env = "SHACL_REPORT_QUEUE_SECONDS")]
+    pub queue_seconds: u64,
+
+    /// Longest one validation may run.
+    #[arg(long, default_value_t = 120, env = "SHACL_REPORT_JOB_SECONDS")]
+    pub job_seconds: u64,
+
+    /// Largest upload in MB, and the largest any single file may grow to
+    /// once decompressed.
+    #[arg(long, default_value_t = 20, env = "SHACL_REPORT_MAX_UPLOAD_MB")]
+    pub max_upload_mb: u64,
+
+    /// Most triples one upload may hold across report, shapes and data.
+    #[arg(long, default_value_t = 100_000, env = "SHACL_REPORT_MAX_TRIPLES")]
+    pub max_triples: usize,
+
+    /// SPARQL endpoint the relay may forward to. Can be repeated, or given
+    /// comma-separated in the environment variable. --endpoint is always allowed.
+    #[arg(
+        long = "allow-endpoint",
+        value_name = "URL",
+        env = "SHACL_REPORT_ALLOW_ENDPOINTS",
+        value_delimiter = ','
+    )]
+    pub allow_endpoint: Vec<String>,
+
+    /// Take the visitor's IP address from the last X-Forwarded-For entry.
+    /// Only set this behind a reverse proxy that sets that header.
+    #[arg(long, env = "SHACL_REPORT_TRUST_PROXY")]
+    pub trust_proxy: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]

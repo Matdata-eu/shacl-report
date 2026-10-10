@@ -88,6 +88,7 @@ fn view(args: &Args, report: Report) -> anyhow::Result<()> {
         !args.no_open,
         Preload::Loaded(Box::new(report)),
         args.endpoint.clone(),
+        None,
     )
 }
 
@@ -110,7 +111,11 @@ fn run_serve(s: ServeArgs) -> ExitCode {
     } else {
         Preload::None
     };
-    if let Err(err) = web::run_blocking(&s.bind, !s.no_open, preload, s.endpoint) {
+    let public = s
+        .public
+        .public
+        .then(|| web::public::PublicConfig::from_args(&s.public, s.endpoint.as_deref()));
+    if let Err(err) = web::run_blocking(&s.bind, !s.no_open, preload, s.endpoint, public) {
         eprintln!("shacl-report: error: {err:#}");
         return ExitCode::from(2);
     }
