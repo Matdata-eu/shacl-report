@@ -122,7 +122,10 @@ impl<'a> SparqlRunner<'a> {
         // optimizer can plan around them. Blank nodes can only be substituted
         // by the evaluator, and the optimizer would treat those variables as
         // unbound where the pattern does not bind them (e.g. in a FILTER).
-        let evaluator = if bindings.iter().any(|(_, t)| matches!(t, Term::BlankNode(_))) {
+        let evaluator = if bindings
+            .iter()
+            .any(|(_, t)| matches!(t, Term::BlankNode(_)))
+        {
             QueryEvaluator::new().without_optimizations()
         } else {
             QueryEvaluator::new()
