@@ -28,6 +28,7 @@ fn inputs(report: &str, data: bool, shapes: bool) -> ReportInputs {
             vec![]
         },
         format: None,
+        prefixes: Vec::new(),
     }
 }
 
@@ -212,6 +213,7 @@ fn advanced(report: bool) -> shacl_report::report::Report {
         },
         shapes: vec![fixtures("shapes-advanced.ttl")],
         format: None,
+        prefixes: Vec::new(),
     })
     .unwrap()
 }
@@ -379,6 +381,7 @@ fn validates_from_the_cli_and_saves_the_report() {
         data: vec![fixtures("data.ttl")],
         shapes: vec![fixtures("shapes-advanced.ttl")],
         format: None,
+        prefixes: Vec::new(),
     })
     .unwrap();
     let generated = load_report(&ReportInputs {
@@ -386,6 +389,7 @@ fn validates_from_the_cli_and_saves_the_report() {
         data: vec![fixtures("data.ttl")],
         shapes: vec![fixtures("shapes-advanced.ttl")],
         format: None,
+        prefixes: Vec::new(),
     })
     .unwrap();
     assert_eq!(result_keys(&reloaded), result_keys(&generated));
@@ -421,4 +425,32 @@ fn validates_uploaded_files() {
             .unwrap()
             .contains("sh:ValidationReport")
     );
+}
+
+#[test]
+fn opens_a_report_given_as_data_as_the_report() {
+    use shacl_report::report::{ReportInputs, load_report};
+    let r = load_report(&ReportInputs {
+        report: None,
+        data: vec![fixtures("report-pyshacl.ttl")],
+        shapes: vec![fixtures("shapes.ttl")],
+        format: None,
+        prefixes: Vec::new(),
+    })
+    .unwrap();
+    assert_eq!(r.stats.total, 11);
+    assert!(r.validation.is_none());
+    assert!(r.sources.report.ends_with("report-pyshacl.ttl"));
+    assert!(r.sources.data.is_empty());
+}
+
+#[test]
+fn adds_prefixes_from_shacl_declarations() {
+    let mut i = inputs("report-pyshacl.ttl", true, true);
+    i.prefixes = vec![fixtures("prefixes.ttl")];
+    let r = load_report(&i).unwrap();
+    let has = |name: &str, ns: &str| r.prefixes.iter().any(|(n, s)| n == name && s == ns);
+    assert!(has("era", "http://data.europa.eu/949/"));
+    // Unused well-known prefixes stay out.
+    assert!(!r.prefixes.iter().any(|(n, _)| n == "dbo"));
 }

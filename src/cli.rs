@@ -49,6 +49,12 @@ pub struct Args {
     #[arg(long = "format", value_enum)]
     pub format: Option<InputFormat>,
 
+    /// Extra prefixes for shortening IRIs: an RDF file with SHACL prefix
+    /// declarations (sh:declare / sh:prefix / sh:namespace) or @prefix lines.
+    /// Can be repeated.
+    #[arg(long = "prefixes", value_name = "FILE")]
+    pub prefixes: Vec<PathBuf>,
+
     /// Write the validation report to FILE as Turtle. Without a REPORT,
     /// shacl-report validates --data against --shapes itself; this saves
     /// that report for other tools.
@@ -105,6 +111,10 @@ pub struct ServeArgs {
     /// Override the input format of the report.
     #[arg(long = "format", value_enum)]
     pub format: Option<InputFormat>,
+    /// Extra prefixes for shortening IRIs: an RDF file with SHACL prefix
+    /// declarations or @prefix lines. Can be repeated.
+    #[arg(long = "prefixes", value_name = "FILE")]
+    pub prefixes: Vec<PathBuf>,
     /// SPARQL endpoint holding the validated data; preset in the viewer's
     /// query editor for running SPARQL constraints and generated queries.
     #[arg(long = "endpoint", value_name = "URL", env = "SHACL_REPORT_ENDPOINT")]

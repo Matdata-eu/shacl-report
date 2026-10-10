@@ -1,0 +1,8 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<http://example.org/prefixes>
+    sh:declare [
+        sh:prefix "era" ;
+        sh:namespace "http://data.europa.eu/949/"^^xsd:anyURI ;
+    ] .

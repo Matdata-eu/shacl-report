@@ -9,6 +9,7 @@ COPY Cargo.toml Cargo.lock ./
 RUN mkdir src && echo 'fn main() {}' > src/main.rs && touch src/lib.rs \
     && cargo build --release --locked \
     && rm -rf src
+COPY build.rs ./
 COPY src ./src
 COPY assets ./assets
 COPY THIRD_PARTY_NOTICES.md ./
