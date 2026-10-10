@@ -102,6 +102,7 @@
     groups: $("groups"), tableWrap: $("table-wrap"), table: $("table"),
     drawer: $("drawer"), drawerBody: $("drawer-body"), drawerPos: $("drawer-pos"),
     prev: $("prev-result"), next: $("next-result"), closeDrawer: $("close-drawer"),
+    about: $("about"), aboutBtn: $("about-btn"), closeAbout: $("close-about"),
     modal: $("modal"), closeModal: $("close-modal"), formSlot: $("open-form-slot"), formTpl: $("open-form-tpl"),
     toast: $("toast"), loading: $("loading"), loadingMsg: $("loading-msg"),
     tabs: $("tabs"), resultsView: $("results-view"), shapesView: $("shapes-view"), sparqlView: $("sparql-view"), explore: $("explore"),
@@ -1191,6 +1192,9 @@
     els.openFiles.addEventListener("click", showModal);
     els.closeModal.addEventListener("click", hideModal);
     els.modal.addEventListener("click", (e) => { if (e.target === els.modal) hideModal(); });
+    els.aboutBtn.addEventListener("click", showAbout);
+    els.closeAbout.addEventListener("click", hideAbout);
+    els.about.addEventListener("click", (e) => { if (e.target === els.about) hideAbout(); });
     els.exportBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       const open = els.exportMenu.classList.toggle("hidden") === false;
@@ -1210,7 +1214,8 @@
     document.addEventListener("keydown", (e) => {
       const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement && document.activeElement.tagName);
       if (e.key === "Escape") {
-        if (!els.modal.classList.contains("hidden")) hideModal();
+        if (!els.about.classList.contains("hidden")) hideAbout();
+        else if (!els.modal.classList.contains("hidden")) hideModal();
         else if (state.turtle && state.turtle.isOpen) state.turtle.close();
         else if (els.filters.classList.contains("open")) openFilters(false);
         else if (state.selected) closeDrawer();
@@ -1260,6 +1265,20 @@
     state.search = "";
     els.search.value = "";
     update();
+  }
+
+  // ---------- about ----------
+  function showAbout() {
+    $("about-version").textContent = els.version.textContent;
+    // A standalone HTML report has no server to serve /licenses.
+    if (state.standalone) $("licenses-link").href = "https://github.com/Matdata-eu/shacl-report/blob/main/THIRD_PARTY_NOTICES.md";
+    els.about.classList.remove("hidden");
+    els.closeAbout.focus();
+  }
+
+  function hideAbout() {
+    els.about.classList.add("hidden");
+    els.aboutBtn.focus();
   }
 
   function init() {

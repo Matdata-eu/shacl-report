@@ -426,11 +426,47 @@ cargo fmt
 Test fixtures in `tests/fixtures/` were produced with pyshacl from
 `shapes.ttl` / `shapes-advanced.ttl` and `data.ttl`.
 
+`THIRD_PARTY_NOTICES.md` lists the licenses of everything compiled into the
+binary. After changing dependencies or vendored assets, regenerate it with
+[cargo-about](https://github.com/EmbarkStudios/cargo-about) (`cargo install
+cargo-about --features cli`):
+
+```sh
+cargo about generate about.hbs -o THIRD_PARTY_NOTICES.md
+```
+
+## Questions, bugs and feature requests
+
+Please open an issue on GitHub:
+<https://github.com/Matdata-eu/shacl-report/issues>.
+
+## Credits
+
+shacl-report is written by Mathias Vanden Auweele ([Matdata](https://matdata.eu/)).
+
+It is built on these open source projects:
+
+- [Oxigraph](https://github.com/oxigraph/oxigraph)'s `oxrdf`, `oxttl`,
+  `oxrdfxml`, `spargebra` and `spareval` crates for RDF parsing and SPARQL
+  evaluation (MIT / Apache-2.0)
+- [axum](https://github.com/tokio-rs/axum) and [Tokio](https://tokio.rs) for
+  the web viewer's server (MIT), [ureq](https://github.com/algesten/ureq) with
+  [rustls](https://github.com/rustls/rustls) for loading files from URLs
+- [clap](https://github.com/clap-rs/clap) for the command line (MIT / Apache-2.0)
+- [MatGUI](https://github.com/Matdata-eu/MatGUI), Matdata's fork of
+  [YASGUI](https://github.com/zazuko/Yasgui), for the SPARQL tab (MIT)
+- [Tabulator](https://tabulator.info) for the results table (MIT)
+- [CodeMirror 6](https://codemirror.net/) with
+  [codemirror-lang-turtle](https://github.com/aatauil/codemirror-lang-turtle)
+  for the Turtle viewer (MIT)
+- The [W3C SHACL test suite](https://w3c.github.io/data-shapes/data-shapes-test-suite/)
+  in `tests/w3c`, under the W3C Software and Document License
+  (`tests/w3c/LICENSE.md`)
+
+The full list, with license texts, is in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The web viewer shows it at
+`/licenses` and links to it from its About dialog.
+
 ## License
 
-Apache-2.0. Bundles [Tabulator](https://tabulator.info) (MIT),
-[MatGUI](https://github.com/Matdata-eu/MatGUI) (MIT, see
-`assets/vendor/matgui/NOTICE.md`) and [CodeMirror 6](https://codemirror.net/)
-with codemirror-lang-turtle (MIT, see `assets/vendor/codemirror/NOTICE.md`).
-`tests/w3c` holds the W3C SHACL test suite under the W3C Software and Document
-License (`tests/w3c/LICENSE.md`).
+Licensed under the [Apache License 2.0](LICENSE).
