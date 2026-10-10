@@ -7,7 +7,7 @@
 use crate::cli::InputFormat;
 use crate::input::{MemoryFile, load_graph, load_graph_from_memory};
 use crate::shapes::ShapesModel;
-use anyhow::{Result, bail};
+use anyhow::{Context, Result, bail};
 use oxrdf::vocab::{rdf, rdfs};
 use oxrdf::{Graph, NamedNodeRef, NamedOrBlankNodeRef, TermRef};
 use serde::Serialize;
@@ -212,6 +212,19 @@ pub struct Report {
     /// SPARQL endpoint preset for the viewer's query editor.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sparql_endpoint: Option<String>,
+    /// Set when shacl-report validated the data itself (no report given).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub validation: Option<ValidationInfo>,
+    /// The generated `sh:ValidationReport` as Turtle, when validated here.
+    #[serde(skip)]
+    pub report_turtle: Option<String>,
+}
+
+/// How the built-in validator produced the report.
+#[derive(Debug, Clone, Serialize)]
+pub struct ValidationInfo {
+    pub engine: String,
+    pub millis: u64,
 }
 
 impl Report {
@@ -241,6 +254,17 @@ pub fn load_report(inputs: &ReportInputs) -> Result<Report> {
     load_graph(&inputs.shapes, None, &mut shapes_graph, &mut prefixes)?;
     let mut data_graph = Graph::new();
     load_graph(&inputs.data, None, &mut data_graph, &mut prefixes)?;
+    let validated =
+        if inputs.report.is_none() && !inputs.shapes.is_empty() && !inputs.data.is_empty() {
+            Some(run_validation(
+                &shapes_graph,
+                &data_graph,
+                &mut report_graph,
+                &prefixes,
+            )?)
+        } else {
+            None
+        };
 
     let display = |p: &PathBuf| p.display().to_string();
     let sources = Sources {
@@ -248,7 +272,14 @@ pub fn load_report(inputs: &ReportInputs) -> Result<Report> {
         data: inputs.data.iter().map(display).collect(),
         shapes: inputs.shapes.iter().map(display).collect(),
     };
-    finish(&report_graph, &shapes_graph, &data_graph, sources, prefixes)
+    finish(
+        &report_graph,
+        &shapes_graph,
+        &data_graph,
+        sources,
+        prefixes,
+        validated,
+    )
 }
 
 /// Like [`load_report`], for files supplied by content (viewer uploads).
@@ -271,6 +302,16 @@ pub fn load_report_from_memory(
     load_graph_from_memory(shapes, None, &mut shapes_graph, &mut prefixes)?;
     let mut data_graph = Graph::new();
     load_graph_from_memory(data, None, &mut data_graph, &mut prefixes)?;
+    let validated = if report.is_none() && !shapes.is_empty() && !data.is_empty() {
+        Some(run_validation(
+            &shapes_graph,
+            &data_graph,
+            &mut report_graph,
+            &prefixes,
+        )?)
+    } else {
+        None
+    };
 
     let names = |files: &[MemoryFile]| files.iter().map(|f| f.name.clone()).collect();
     let sources = Sources {
@@ -278,7 +319,14 @@ pub fn load_report_from_memory(
         data: names(data),
         shapes: names(shapes),
     };
-    finish(&report_graph, &shapes_graph, &data_graph, sources, prefixes)
+    finish(
+        &report_graph,
+        &shapes_graph,
+        &data_graph,
+        sources,
+        prefixes,
+        validated,
+    )
 }
 
 fn finish(
@@ -287,8 +335,9 @@ fn finish(
     data_graph: &Graph,
     sources: Sources,
     mut prefixes: Vec<(String, String)>,
+    validated: Option<(ValidationInfo, String)>,
 ) -> Result<Report> {
-    let has_report = !sources.report.is_empty();
+    let has_report = !sources.report.is_empty() || validated.is_some();
     if !has_report && sources.shapes.is_empty() {
         bail!("give a validation report, a shapes graph, or both");
     }
@@ -311,11 +360,34 @@ fn finish(
         report.shapes = Some(crate::shapes::build_shapes(shapes_graph));
     }
     report.sources = sources;
+    if let Some((info, turtle)) = validated {
+        report.validation = Some(info);
+        report.report_turtle = Some(turtle);
+    }
     if !prefixes.iter().any(|(n, _)| n == "sh") {
         prefixes.push(("sh".to_string(), SH.to_string()));
     }
     report.prefixes = prefixes;
     Ok(report)
+}
+
+/// Validate `data` against `shapes` with the built-in engine, putting the
+/// `sh:ValidationReport` in `report` and returning it as Turtle too.
+fn run_validation(
+    shapes: &Graph,
+    data: &Graph,
+    report: &mut Graph,
+    prefixes: &[(String, String)],
+) -> Result<(ValidationInfo, String)> {
+    let started = std::time::Instant::now();
+    let v = crate::validate::validate(data, shapes).context("validation failed")?;
+    let info = ValidationInfo {
+        engine: format!("shacl-report {}", env!("CARGO_PKG_VERSION")),
+        millis: started.elapsed().as_millis() as u64,
+    };
+    let turtle = crate::validate::to_turtle(&v.report, prefixes);
+    *report = v.report;
+    Ok((info, turtle))
 }
 
 /// Build the model from already-parsed graphs. `shapes` and `data` may be empty.
@@ -510,6 +582,8 @@ pub fn build_report(
         has_report: true,
         shapes: None,
         sparql_endpoint: None,
+        validation: None,
+        report_turtle: None,
     })
 }
 

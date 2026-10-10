@@ -17,6 +17,7 @@ fn main() -> ExitCode {
         eprintln!(
             "error: the following required arguments were not provided:\n  \
              <REPORT>\n\nUsage: shacl-report <REPORT> [--data FILE] [--shapes FILE]\n       \
+             shacl-report --data FILE --shapes FILE   (validate with the built-in engine)\n       \
              shacl-report --shapes FILE --view   (explore shapes without a report)\n\n\
              For more information, try '--help'."
         );
@@ -38,6 +39,25 @@ fn main() -> ExitCode {
     report.sparql_endpoint = args.endpoint.clone();
     if !args.quiet {
         print_summary(&report);
+    }
+    if let Some(path) = &args.save_report {
+        let Some(turtle) = &report.report_turtle else {
+            eprintln!(
+                "shacl-report: error: --save-report needs --data and --shapes without a REPORT \
+                 (a report you pass in is already saved)"
+            );
+            return ExitCode::from(2);
+        };
+        if let Err(err) = std::fs::write(path, turtle) {
+            eprintln!(
+                "shacl-report: error: cannot write {}: {err}",
+                path.display()
+            );
+            return ExitCode::from(2);
+        }
+        if !args.quiet {
+            eprintln!("validation report written to {}", path.display());
+        }
     }
     if let Some(path) = &args.html {
         if let Err(err) = export::write_html(&report, path) {
@@ -109,6 +129,9 @@ fn print_summary(r: &Report) {
     }
     if !r.has_report {
         return;
+    }
+    if let Some(v) = &r.validation {
+        eprintln!("validated with {} in {} ms", v.engine, v.millis);
     }
     let s = &r.stats;
     let conforms = match r.conforms {
