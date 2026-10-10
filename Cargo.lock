@@ -1216,6 +1216,7 @@ dependencies = [
  "base64 0.22.1",
  "clap",
  "flate2",
+ "getrandom 0.3.4",
  "oxrdf",
  "oxrdfxml",
  "oxsdatatypes",

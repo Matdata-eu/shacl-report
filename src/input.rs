@@ -84,6 +84,35 @@ pub struct MemoryFile {
     pub content: Vec<u8>,
 }
 
+/// Caps on what one load may cost. The public web server sets them so that
+/// a single upload cannot exhaust memory or CPU; everything else is unlimited.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct LoadLimits {
+    /// Most bytes read per file after decompression (guards against gzip bombs).
+    pub max_bytes: Option<u64>,
+    /// Most triples across all graphs of one load.
+    pub max_triples: Option<usize>,
+    /// Validation stops with an error after this moment.
+    pub deadline: Option<std::time::Instant>,
+}
+
+/// A reader that fails, instead of silently truncating, once `left` runs out.
+struct Capped<R> {
+    inner: R,
+    left: u64,
+    name: String,
+}
+
+impl<R: Read> Read for Capped<R> {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        let n = self.inner.read(buf)?;
+        self.left = self.left.checked_sub(n as u64).ok_or_else(|| {
+            std::io::Error::other(format!("{} is larger than this server accepts", self.name))
+        })?;
+        Ok(n)
+    }
+}
+
 /// Parse in-memory files into `graph`, like [`load_graph`] does for paths.
 pub fn load_graph_from_memory(
     files: &[MemoryFile],
@@ -91,20 +120,59 @@ pub fn load_graph_from_memory(
     graph: &mut Graph,
     prefixes: &mut Vec<(String, String)>,
 ) -> Result<()> {
+    load_graph_from_memory_limited(
+        files,
+        format,
+        graph,
+        prefixes,
+        &LoadLimits::default(),
+        &mut 0,
+    )
+}
+
+/// [`load_graph_from_memory`] under `limits`; `triples` counts the triples
+/// read so far across calls, for [`LoadLimits::max_triples`].
+pub fn load_graph_from_memory_limited(
+    files: &[MemoryFile],
+    format: Option<InputFormat>,
+    graph: &mut Graph,
+    prefixes: &mut Vec<(String, String)>,
+    limits: &LoadLimits,
+    triples: &mut usize,
+) -> Result<()> {
     for file in files {
         let fmt = match format {
             Some(f) => f,
             None => detect_format(Path::new(&file.name))?,
         };
-        let raw: Box<dyn Read + '_> = if file.name.to_ascii_lowercase().ends_with(".gz") {
+        let mut raw: Box<dyn Read + '_> = if file.name.to_ascii_lowercase().ends_with(".gz") {
             Box::new(MultiGzDecoder::new(file.content.as_slice()))
         } else {
             Box::new(file.content.as_slice())
         };
+        if let Some(max) = limits.max_bytes {
+            raw = Box::new(Capped {
+                inner: raw,
+                left: max,
+                name: file.name.clone(),
+            });
+        }
+        let mut too_many = false;
         let found = parse_triples(BufReader::new(raw), fmt, |t| {
+            if limits.max_triples.is_some_and(|max| *triples >= max) {
+                too_many = true;
+                return;
+            }
+            *triples += 1;
             graph.insert(&t);
         })
         .with_context(|| format!("failed to parse {}", file.name))?;
+        if too_many {
+            anyhow::bail!(
+                "the files hold more than {} triples, the most this server accepts",
+                limits.max_triples.unwrap_or_default()
+            );
+        }
         merge_prefixes(prefixes, found);
     }
     Ok(())

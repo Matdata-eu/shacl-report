@@ -783,6 +783,15 @@
     const pathShapes = form.querySelector("[name=path-shapes]");
     const pathData = form.querySelector("[name=path-data]");
     const validating = () => form.dataset.mode === "validate";
+    const pub = state.meta && state.meta.public;
+    if (pub) {
+      // A public server reads no paths or URLs; say what it keeps and for how long.
+      form.querySelector(".path-load").remove();
+      const note = document.createElement("p");
+      note.className = "form-note";
+      note.textContent = `Up to ${pub.max_upload_mb} MB and ${pub.max_triples.toLocaleString()} triples. Your files stay on this server, visible only to you, until ${pub.session_idle_minutes} minutes after your last action.`;
+      msg.parentElement.before(note);
+    }
 
     const refresh = () => {
       const report = !validating() && (files.report.length || pathReport.value.trim());
@@ -996,6 +1005,7 @@
     if (!state.editor) {
       state.editor = new window.ShaclSparql.Editor(els.sparqlView, {
         server: !state.standalone,
+        proxyAllow: state.meta && state.meta.public ? state.meta.public.allow_endpoints : null,
         preset: report.sparql_endpoint,
         toast,
         theme: currentTheme,
@@ -1080,7 +1090,14 @@
 
   async function loadFromServer() {
     const meta = await (await fetch("/api/meta")).json();
+    state.meta = meta;
     if (meta.version) els.version.textContent = `v${meta.version}`;
+    if (meta.public && !state.heartbeat) {
+      // Keep the session alive while the page is in view; a hidden tab lets it expire.
+      state.heartbeat = setInterval(() => {
+        if (document.visibilityState === "visible") fetch("/api/meta").catch(() => {});
+      }, 5 * 60 * 1000);
+    }
     els.openFiles.classList.remove("hidden");
     for (const el of document.querySelectorAll(".server-only")) el.classList.remove("hidden");
     if (!meta.loaded) {

@@ -304,6 +304,8 @@
     constructor(root, opts) {
       this.root = root;
       this.server = !!opts.server;
+      // On a public server the relay only reaches these endpoints; null means any.
+      this.proxyAllow = opts.proxyAllow || null;
       this.onNeedEndpoint = opts.onNeedEndpoint || (() => {});
       this.toast = opts.toast || (() => {});
       this.theme = opts.theme || (() => "light");
@@ -313,7 +315,7 @@
       this.proxyInput = root.querySelector("#endpoint-proxy");
       this.status = root.querySelector("#endpoint-status");
       this.host = root.querySelector("#yasgui");
-      root.querySelector(".proxy-toggle").classList.toggle("hidden", !this.server);
+      root.querySelector(".proxy-toggle").classList.toggle("hidden", !this.server || (this.proxyAllow && !this.proxyAllow.length));
       const saved = storage(ENDPOINT_KEY);
       this.endpointInput.value = opts.preset || saved || "";
       const proxy = storage(PROXY_KEY);
@@ -333,11 +335,17 @@
       return this.endpointInput.value.trim();
     }
 
+    /** True when requests to the current endpoint go through the server relay. */
+    viaProxy() {
+      if (!this.server || !this.proxyInput.checked) return false;
+      return !this.proxyAllow || this.proxyAllow.includes(this.endpoint);
+    }
+
     /** The URL MatGUI should send requests to. */
     requestUrl() {
       const ep = this.endpoint;
       if (!ep) return "";
-      if (this.server && this.proxyInput.checked) return `${location.origin}/api/sparql?endpoint=${encodeURIComponent(ep)}`;
+      if (this.viaProxy()) return `${location.origin}/api/sparql?endpoint=${encodeURIComponent(ep)}`;
       return ep;
     }
 
@@ -350,7 +358,7 @@
         this.status.textContent = "The endpoint must be an http(s) URL.";
         this.status.className = "endpoint-status warn";
       } else {
-        const via = this.server && this.proxyInput.checked ? "through the shacl-report server (no CORS needed)" : "directly from your browser (the endpoint must allow CORS)";
+        const via = this.viaProxy() ? "through the shacl-report server (no CORS needed)" : "directly from your browser (the endpoint must allow CORS)";
         this.status.textContent = `Queries go to ${ep} ${via}.`;
         this.status.className = "endpoint-status";
       }

@@ -5,7 +5,7 @@
 //! `<iri>` tokens so the front end can shorten them with the known prefixes.
 
 use crate::cli::InputFormat;
-use crate::input::{MemoryFile, load_graph, load_graph_from_memory};
+use crate::input::{LoadLimits, MemoryFile, load_graph, load_graph_from_memory_limited};
 use crate::shapes::ShapesModel;
 use anyhow::{Context, Result, bail};
 use oxrdf::vocab::{rdf, rdfs};
@@ -261,6 +261,7 @@ pub fn load_report(inputs: &ReportInputs) -> Result<Report> {
                 &data_graph,
                 &mut report_graph,
                 &prefixes,
+                None,
             )?)
         } else {
             None
@@ -288,26 +289,54 @@ pub fn load_report_from_memory(
     shapes: &[MemoryFile],
     data: &[MemoryFile],
 ) -> Result<Report> {
+    load_report_from_memory_limited(report, shapes, data, &LoadLimits::default())
+}
+
+/// [`load_report_from_memory`] under `limits`.
+pub fn load_report_from_memory_limited(
+    report: Option<&MemoryFile>,
+    shapes: &[MemoryFile],
+    data: &[MemoryFile],
+    limits: &LoadLimits,
+) -> Result<Report> {
     let mut prefixes = Vec::new();
+    let mut triples = 0;
     let mut report_graph = Graph::new();
     if let Some(report) = report {
-        load_graph_from_memory(
+        load_graph_from_memory_limited(
             std::slice::from_ref(report),
             None,
             &mut report_graph,
             &mut prefixes,
+            limits,
+            &mut triples,
         )?;
     }
     let mut shapes_graph = Graph::new();
-    load_graph_from_memory(shapes, None, &mut shapes_graph, &mut prefixes)?;
+    load_graph_from_memory_limited(
+        shapes,
+        None,
+        &mut shapes_graph,
+        &mut prefixes,
+        limits,
+        &mut triples,
+    )?;
     let mut data_graph = Graph::new();
-    load_graph_from_memory(data, None, &mut data_graph, &mut prefixes)?;
+    load_graph_from_memory_limited(
+        data,
+        None,
+        &mut data_graph,
+        &mut prefixes,
+        limits,
+        &mut triples,
+    )?;
     let validated = if report.is_none() && !shapes.is_empty() && !data.is_empty() {
         Some(run_validation(
             &shapes_graph,
             &data_graph,
             &mut report_graph,
             &prefixes,
+            limits.deadline,
         )?)
     } else {
         None
@@ -378,9 +407,10 @@ fn run_validation(
     data: &Graph,
     report: &mut Graph,
     prefixes: &[(String, String)],
+    deadline: Option<std::time::Instant>,
 ) -> Result<(ValidationInfo, String)> {
     let started = std::time::Instant::now();
-    let v = crate::validate::validate(data, shapes).context("validation failed")?;
+    let v = crate::validate::validate_until(data, shapes, deadline).context("validation failed")?;
     let info = ValidationInfo {
         engine: format!("shacl-report {}", env!("CARGO_PKG_VERSION")),
         millis: started.elapsed().as_millis() as u64,

@@ -118,6 +118,12 @@ Or, once published:
 cargo install shacl-report
 ```
 
+Or use the Docker image (see [Docker](#docker)):
+
+```sh
+docker pull ghcr.io/matdata-eu/shacl-report:latest
+```
+
 ## Usage
 
 Validate with the built-in engine:
@@ -218,6 +224,103 @@ endpoint must allow CORS.
     path: shacl-report.html
 ```
 
+### Docker
+
+The image `ghcr.io/matdata-eu/shacl-report` holds only the binary
+(distroless, running as an unprivileged user). `latest` and version tags
+such as `0.2.0` come from releases, for amd64 and arm64. `edge` follows the
+`main` branch (amd64 only).
+
+**Run the web app as a public website.** By default the image starts the
+viewer in [public mode](#running-as-a-public-website) on port 8080:
+
+```sh
+docker run -d --name shacl-report -p 8080:8080 --memory 4g --restart unless-stopped \
+  ghcr.io/matdata-eu/shacl-report:latest
+```
+
+**Use the CLI on your own files.** Mount the folder holding them at `/data`
+and pass the usual arguments:
+
+```sh
+docker run --rm -v "$PWD:/data" ghcr.io/matdata-eu/shacl-report \
+  --data data.ttl --shapes shapes.ttl --html report.html --ci
+```
+
+**Use the viewer locally**, with your files preloaded and without the public
+limits:
+
+```sh
+docker run --rm -p 8080:8080 -v "$PWD:/data" -e SHACL_REPORT_PUBLIC=false \
+  ghcr.io/matdata-eu/shacl-report serve --no-open --data data.ttl --shapes shapes.ttl
+```
+
+With Docker Compose, behind a reverse proxy that terminates HTTPS:
+
+```yaml
+services:
+  shacl-report:
+    image: ghcr.io/matdata-eu/shacl-report:latest
+    restart: unless-stopped
+    ports: ["127.0.0.1:8080:8080"]   # only the proxy can reach it
+    mem_limit: 4g
+    environment:
+      SHACL_REPORT_TRUST_PROXY: "true"
+      SHACL_REPORT_MAX_SESSIONS: "10"
+      SHACL_REPORT_ENDPOINT: "https://example.org/sparql"
+```
+
+Build the image yourself with `docker build -t shacl-report .`.
+
+### Running as a public website
+
+`serve --public` (the default in the Docker image) makes the viewer safe to
+put on the internet. Without it the viewer is a single-user tool: everyone
+who opens it sees the same report, and it reads files and fetches URLs on the
+server's behalf. In public mode:
+
+- **Every visitor gets their own session.** Files a visitor uploads are only
+  visible to them, through an unguessable `HttpOnly` session cookie. A
+  report preloaded at startup (`--report`, `--shapes`, `--data`) is shown to
+  visitors until they load their own, which is handy for a demo.
+- **Only active users hold a slot.** A session starts when a visitor loads
+  files, not when they open the page, so crawlers and health checks cost
+  nothing. At most `--max-sessions` sessions exist at once, and at most
+  `--max-sessions-per-ip` per address, so one visitor cannot take every
+  slot. When the server is full, new visitors are told to try again in a few
+  minutes (HTTP 503 with `Retry-After`).
+- **Idle sessions end on their own.** A session ends `--session-idle-minutes`
+  after its last request and frees its slot. An open tab keeps its session
+  alive while it is in view, and a hidden or closed tab lets it expire.
+  Loading new files reuses the visitor's own slot.
+- **Heavy work is queued.** At most `--max-jobs` uploads are parsed and
+  validated at the same time, and each session runs one at a time. Others
+  wait in line for up to `--queue-seconds`, then are told the server is busy.
+  A validation stops after `--job-seconds`.
+- **Uploads are bounded.** An upload may be at most `--max-upload-mb`, each
+  file may grow to at most that size once decompressed (so a small `.gz`
+  cannot unpack into gigabytes), and it may hold at most `--max-triples`.
+- **The server only reaches what you allow.** It reads no server paths and
+  fetches no URLs for visitors; they upload files instead. The SPARQL relay
+  only forwards to `--endpoint` and `--allow-endpoint`, so it cannot be
+  used to reach your internal network. Visitors can still query any endpoint
+  that allows CORS straight from their browser.
+
+**Sizing.** Memory is what limits a public server. As a rough guide, 100,000
+triples with 20,000 violations take about 400 MB while being validated, and
+the loaded result stays in memory for the session. Plan for
+`--max-sessions` × the memory of a typical upload, plus `--max-jobs` × the
+memory of the largest allowed upload. The defaults (10 sessions, 2 jobs,
+100,000 triples) fit in about 4 GB. Set a memory limit on the container so a
+miscalculation restarts the server instead of the host.
+
+**Behind a reverse proxy**, set `--trust-proxy` so the per-IP limit uses the
+visitor's address from the last `X-Forwarded-For` entry. Only set it when a
+proxy you control sets that header, because otherwise visitors can choose
+their own address. Let the proxy handle HTTPS, and allow request bodies a
+third larger than `--max-upload-mb` (uploads are base64-encoded). `/healthz`
+answers `ok` for load balancers.
+
 ### Options — report (default)
 
 | Flag | Description |
@@ -246,6 +349,26 @@ endpoint must allow CORS.
 | `--format <FMT>` | Force the report's input format. |
 | `--bind <ADDR>` | Bind address (default: `127.0.0.1:0`). |
 | `--no-open` | Do not auto-open the system browser. |
+
+Public server options (see [Running as a public website](#running-as-a-public-website)).
+Each flag can also be set with the environment variable in brackets.
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--public` (`SHACL_REPORT_PUBLIC`) | off | Per-visitor sessions, no server-side paths or URLs, relay allow-list, and the limits below. |
+| `--max-sessions` (`SHACL_REPORT_MAX_SESSIONS`) | 10 | Visitors with files loaded at the same time. |
+| `--max-sessions-per-ip` (`SHACL_REPORT_MAX_SESSIONS_PER_IP`) | 2 | Sessions one IP address can hold. |
+| `--session-idle-minutes` (`SHACL_REPORT_SESSION_IDLE_MINUTES`) | 30 | Inactivity after which a session and its files are dropped. |
+| `--max-jobs` (`SHACL_REPORT_MAX_JOBS`) | 2 | Uploads parsed or validated in parallel. |
+| `--queue-seconds` (`SHACL_REPORT_QUEUE_SECONDS`) | 30 | How long an upload waits for a free job before the server reports it is busy. |
+| `--job-seconds` (`SHACL_REPORT_JOB_SECONDS`) | 120 | Longest one validation may run. |
+| `--max-upload-mb` (`SHACL_REPORT_MAX_UPLOAD_MB`) | 20 | Largest upload, and largest size of any file once decompressed. |
+| `--max-triples` (`SHACL_REPORT_MAX_TRIPLES`) | 100000 | Most triples in one upload. |
+| `--allow-endpoint <URL>` (`SHACL_REPORT_ALLOW_ENDPOINTS`, comma-separated) | none | Endpoints the SPARQL relay may reach, besides `--endpoint`. Repeatable. |
+| `--trust-proxy` (`SHACL_REPORT_TRUST_PROXY`) | off | Take the visitor's IP from the last `X-Forwarded-For` entry. |
+
+`--bind` (`SHACL_REPORT_BIND`) and `--endpoint` (`SHACL_REPORT_ENDPOINT`)
+can also be set through the environment.
 
 ### Exit codes
 

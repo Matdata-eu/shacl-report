@@ -2,15 +2,16 @@
 
 use super::{AppState, assets};
 use crate::input::MemoryFile;
-use crate::report::{ReportInputs, load_report, load_report_from_memory};
+use crate::report::{Report, ReportInputs, load_report, load_report_from_memory_limited};
 use axum::Json;
 use axum::Router;
 use axum::body::Body;
-use axum::extract::{DefaultBodyLimit, State};
-use axum::http::{StatusCode, header};
+use axum::extract::{ConnectInfo, DefaultBodyLimit, State};
+use axum::http::{HeaderMap, StatusCode, header};
 use axum::response::{Html, IntoResponse, Response};
 use axum::routing::{get, post};
 use serde::{Deserialize, Serialize};
+use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -18,10 +19,16 @@ use std::sync::Arc;
 const MAX_UPLOAD_BYTES: usize = 1024 * 1024 * 1024;
 
 pub fn router(state: AppState) -> Router {
+    let upload_limit = state
+        .public
+        .as_ref()
+        .map_or(MAX_UPLOAD_BYTES, |p| p.cfg.max_body_bytes());
     Router::new()
         .route("/", get(root))
+        .route("/healthz", get(|| async { "ok" }))
         .route("/assets/*path", get(asset))
         .route("/api/meta", get(meta))
+        .route("/api/session", axum::routing::delete(end_session))
         .route("/api/report", get(report))
         .route("/api/export.html", get(export_html))
         .route("/api/report.ttl", get(report_turtle))
@@ -30,11 +37,11 @@ pub fn router(state: AppState) -> Router {
             "/api/sparql",
             get(sparql_get)
                 .post(sparql_post)
-                .layer(DefaultBodyLimit::max(MAX_UPLOAD_BYTES)),
+                .layer(DefaultBodyLimit::max(upload_limit)),
         )
         .route(
             "/api/upload",
-            post(upload).layer(DefaultBodyLimit::max(MAX_UPLOAD_BYTES)),
+            post(upload).layer(DefaultBodyLimit::max(upload_limit)),
         )
         .with_state(state)
 }
@@ -59,23 +66,45 @@ async fn asset(axum::extract::Path(path): axum::extract::Path<String>) -> Respon
     }
 }
 
+/// The report this visitor sees: their own session's on a public server,
+/// else the one loaded at startup or through the viewer.
+async fn current(s: &AppState, headers: &HeaderMap) -> Option<Arc<Report>> {
+    if let Some(p) = &s.public
+        && let Some(Some(r)) = p.touch(headers)
+    {
+        return Some(r);
+    }
+    s.data.lock().await.clone()
+}
+
 #[derive(Serialize)]
 struct MetaDto {
     version: &'static str,
     loaded: bool,
     endpoint: Option<String>,
+    /// Present on a public server.
+    public: Option<super::public::PublicInfo>,
 }
 
-async fn meta(State(s): State<AppState>) -> Json<MetaDto> {
+async fn meta(State(s): State<AppState>, headers: HeaderMap) -> Json<MetaDto> {
     Json(MetaDto {
         version: env!("CARGO_PKG_VERSION"),
-        loaded: s.data.lock().await.is_some(),
+        loaded: current(&s, &headers).await.is_some(),
         endpoint: s.endpoint.clone(),
+        public: s.public.as_ref().map(|p| p.info()),
     })
 }
 
-async fn report(State(s): State<AppState>) -> Response {
-    let Some(data) = s.data.lock().await.clone() else {
+/// Forget the visitor's files on a public server, freeing their slot.
+async fn end_session(State(s): State<AppState>, headers: HeaderMap) -> StatusCode {
+    if let Some(p) = &s.public {
+        p.end(&headers);
+    }
+    StatusCode::NO_CONTENT
+}
+
+async fn report(State(s): State<AppState>, headers: HeaderMap) -> Response {
+    let Some(data) = current(&s, &headers).await else {
         return (StatusCode::CONFLICT, "no report loaded").into_response();
     };
     match tokio::task::spawn_blocking(move || serde_json::to_vec(&*data)).await {
@@ -90,8 +119,8 @@ async fn report(State(s): State<AppState>) -> Response {
     }
 }
 
-async fn export_html(State(s): State<AppState>) -> Response {
-    let Some(data) = s.data.lock().await.clone() else {
+async fn export_html(State(s): State<AppState>, headers: HeaderMap) -> Response {
+    let Some(data) = current(&s, &headers).await else {
         return (StatusCode::CONFLICT, "no report loaded").into_response();
     };
     match tokio::task::spawn_blocking(move || super::export::render_html(&data)).await {
@@ -116,12 +145,9 @@ async fn export_html(State(s): State<AppState>) -> Response {
 }
 
 /// The report the built-in validator produced, as Turtle.
-async fn report_turtle(State(s): State<AppState>) -> Response {
-    let turtle = s
-        .data
-        .lock()
+async fn report_turtle(State(s): State<AppState>, headers: HeaderMap) -> Response {
+    let turtle = current(&s, &headers)
         .await
-        .as_ref()
         .and_then(|d| d.report_turtle.clone());
     let Some(turtle) = turtle else {
         return (StatusCode::NOT_FOUND, "no generated validation report").into_response();
@@ -152,6 +178,13 @@ struct LoadBody {
 }
 
 async fn load(State(s): State<AppState>, Json(body): Json<LoadBody>) -> Response {
+    if s.public.is_some() {
+        return (
+            StatusCode::FORBIDDEN,
+            "This server does not load files by path or URL. Upload the files instead.",
+        )
+            .into_response();
+    }
     let inputs = ReportInputs {
         report: body.report,
         data: body.data,
@@ -201,7 +234,23 @@ fn decode(f: UploadFile) -> anyhow::Result<MemoryFile> {
     })
 }
 
-async fn upload(State(s): State<AppState>, Json(body): Json<UploadBody>) -> Response {
+async fn upload(
+    State(s): State<AppState>,
+    peer: Option<ConnectInfo<SocketAddr>>,
+    headers: HeaderMap,
+    Json(body): Json<UploadBody>,
+) -> Response {
+    let job = match &s.public {
+        Some(p) => {
+            let ip = p.client_ip(&headers, peer.map(|c| c.0.ip()));
+            match p.begin(&headers, ip).await {
+                Ok(job) => Some(job),
+                Err(refusal) => return refusal.into_response(),
+            }
+        }
+        None => None,
+    };
+    let limits = job.as_ref().map(|j| j.limits()).unwrap_or_default();
     let endpoint = s.endpoint.clone();
     let result = tokio::task::spawn_blocking(move || -> anyhow::Result<_> {
         let report = body.report.map(decode).transpose()?;
@@ -215,17 +264,38 @@ async fn upload(State(s): State<AppState>, Json(body): Json<UploadBody>) -> Resp
             .into_iter()
             .map(decode)
             .collect::<anyhow::Result<Vec<_>>>()?;
-        load_report_from_memory(report.as_ref(), &shapes, &data)
+        load_report_from_memory_limited(report.as_ref(), &shapes, &data, &limits)
     })
     .await
     .unwrap_or_else(|e| Err(anyhow::anyhow!("task panic: {e}")));
-    match result {
-        Ok(mut r) => {
-            r.sparql_endpoint = endpoint;
-            *s.data.lock().await = Some(Arc::new(r));
-            (StatusCode::OK, "ok").into_response()
+    let report = result.map(|mut r| {
+        r.sparql_endpoint = endpoint;
+        Arc::new(r)
+    });
+    let Some(job) = job else {
+        return match report {
+            Ok(r) => {
+                *s.data.lock().await = Some(r);
+                (StatusCode::OK, "ok").into_response()
+            }
+            Err(e) => (StatusCode::BAD_REQUEST, format!("{e:#}")).into_response(),
+        };
+    };
+    // A failed first upload drops its new session, so only a success sets the cookie.
+    match report {
+        Ok(r) => {
+            let cookie = job.new_cookie.clone();
+            job.finish(Some(r));
+            let mut resp = (StatusCode::OK, "ok").into_response();
+            if let Some(c) = cookie {
+                resp.headers_mut().insert(header::SET_COOKIE, c);
+            }
+            resp
         }
-        Err(e) => (StatusCode::BAD_REQUEST, format!("{e:#}")).into_response(),
+        Err(e) => {
+            job.finish(None);
+            (StatusCode::BAD_REQUEST, format!("{e:#}")).into_response()
+        }
     }
 }
 
@@ -250,6 +320,7 @@ fn header_str(h: &axum::http::HeaderMap, name: header::HeaderName) -> Option<&st
 /// Relay a SPARQL request to the endpoint chosen in the viewer, so the
 /// browser is not blocked by endpoints that do not send CORS headers.
 async fn relay(
+    s: &AppState,
     endpoint: String,
     query: String,
     headers: axum::http::HeaderMap,
@@ -257,6 +328,15 @@ async fn relay(
 ) -> Response {
     if !crate::http::is_url(&endpoint) {
         return (StatusCode::BAD_REQUEST, "endpoint must be an http(s) URL").into_response();
+    }
+    if let Some(p) = &s.public
+        && !p.cfg.relay_allowed(&endpoint)
+    {
+        return (
+            StatusCode::FORBIDDEN,
+            "This server only relays queries to its own allowed endpoints. Turn off the relay to query this endpoint from your browser.",
+        )
+            .into_response();
     }
     let accept = header_str(&headers, header::ACCEPT).map(str::to_string);
     let auth = header_str(&headers, header::AUTHORIZATION).map(str::to_string);
@@ -291,20 +371,23 @@ async fn relay(
 }
 
 async fn sparql_get(
+    State(s): State<AppState>,
     axum::extract::Query(t): axum::extract::Query<SparqlTarget>,
     uri: axum::http::Uri,
     headers: axum::http::HeaderMap,
 ) -> Response {
-    relay(t.endpoint, forwarded_query(uri.query()), headers, None).await
+    relay(&s, t.endpoint, forwarded_query(uri.query()), headers, None).await
 }
 
 async fn sparql_post(
+    State(s): State<AppState>,
     axum::extract::Query(t): axum::extract::Query<SparqlTarget>,
     uri: axum::http::Uri,
     headers: axum::http::HeaderMap,
     body: axum::body::Bytes,
 ) -> Response {
     relay(
+        &s,
         t.endpoint,
         forwarded_query(uri.query()),
         headers,
