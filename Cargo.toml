@@ -25,7 +25,7 @@ tokio = { version = "1", features = ["rt", "macros", "net", "signal", "sync"] }
 webbrowser = "1"
 base64 = "0.22"
 ureq = "3"
-spareval = "0.2"
+spareval = { version = "0.2", features = ["sep-0006"] }
 spargebra = "0.4"
 oxsdatatypes = "0.2"
 regex = "1"
