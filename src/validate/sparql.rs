@@ -11,6 +11,7 @@ use oxrdf::{
 use regex::Regex;
 use spareval::{QueryEvaluationError, QueryEvaluator, QueryResults};
 use spargebra::algebra::{AggregateExpression, Expression, GraphPattern, OrderExpression};
+use spargebra::term::{NamedNodePattern, TermPattern};
 use spargebra::{Query, SparqlParser};
 use std::cell::{OnceCell, RefCell};
 use std::collections::{HashMap, HashSet};
@@ -117,9 +118,15 @@ impl<'a> SparqlRunner<'a> {
     }
 
     fn run(&self, query: &Query, bindings: &[(&str, &Term)]) -> Result<Outcome> {
-        // The optimizer treats variables the pattern does not bind as unbound,
-        // which defeats pre-binding ($this, $value, parameters) in FILTERs.
-        let evaluator = QueryEvaluator::new().without_optimizations();
+        // IRIs and literals are written into the query as constants, so the
+        // optimizer can plan around them. Blank nodes can only be substituted
+        // by the evaluator, and the optimizer would treat those variables as
+        // unbound where the pattern does not bind them (e.g. in a FILTER).
+        let evaluator = if bindings.iter().any(|(_, t)| matches!(t, Term::BlankNode(_))) {
+            QueryEvaluator::new().without_optimizations()
+        } else {
+            QueryEvaluator::new()
+        };
         let constants: HashMap<&str, Expression> = bindings
             .iter()
             .filter_map(|(n, t)| match t {
@@ -315,11 +322,49 @@ fn visit_expr(e: &Expression, f: &mut dyn FnMut(&Expression)) {
     }
 }
 
-/// Replace pre-bound variables by their values in every expression
-/// (FILTER, BIND, ORDER BY, aggregates), including inside EXISTS. Pattern
-/// positions are handled by the evaluator's own substitution.
+/// Replace a pre-bound variable in a triple pattern position by its value,
+/// so the evaluator looks it up directly instead of scanning.
+fn substitute_term(t: &mut TermPattern, b: &HashMap<&str, Expression>) {
+    if let TermPattern::Variable(v) = t {
+        match b.get(v.as_str()) {
+            Some(Expression::NamedNode(n)) => *t = TermPattern::NamedNode(n.clone()),
+            Some(Expression::Literal(l)) => *t = TermPattern::Literal(l.clone()),
+            _ => {}
+        }
+    }
+}
+
+fn substitute_named(t: &mut NamedNodePattern, b: &HashMap<&str, Expression>) {
+    if let NamedNodePattern::Variable(v) = t
+        && let Some(Expression::NamedNode(n)) = b.get(v.as_str())
+    {
+        *t = NamedNodePattern::NamedNode(n.clone());
+    }
+}
+
+/// Replace pre-bound variables (IRIs and literals) by their values in
+/// triple patterns and in every expression (FILTER, BIND, ORDER BY,
+/// aggregates), including inside EXISTS. Blank nodes are left to the
+/// evaluator's own substitution.
 fn substitute_pattern(p: &mut GraphPattern, b: &HashMap<&str, Expression>) {
     match p {
+        GraphPattern::Bgp { patterns } => {
+            for t in patterns {
+                substitute_term(&mut t.subject, b);
+                substitute_named(&mut t.predicate, b);
+                substitute_term(&mut t.object, b);
+            }
+        }
+        GraphPattern::Path {
+            subject, object, ..
+        } => {
+            substitute_term(subject, b);
+            substitute_term(object, b);
+        }
+        GraphPattern::Graph { name, inner } => {
+            substitute_named(name, b);
+            substitute_pattern(inner, b);
+        }
         GraphPattern::Filter { expr, inner } => {
             substitute_expr(expr, b);
             substitute_pattern(inner, b);
@@ -364,8 +409,7 @@ fn substitute_pattern(p: &mut GraphPattern, b: &HashMap<&str, Expression>) {
             substitute_pattern(left, b);
             substitute_pattern(right, b);
         }
-        GraphPattern::Graph { inner, .. }
-        | GraphPattern::Project { inner, .. }
+        GraphPattern::Project { inner, .. }
         | GraphPattern::Distinct { inner }
         | GraphPattern::Reduced { inner }
         | GraphPattern::Slice { inner, .. }
