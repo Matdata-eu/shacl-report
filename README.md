@@ -14,6 +14,8 @@ anonymous `sh:ValidationResult` nodes pointing at blank-node property shapes.
 names every shape, shows the constraint that was broken, and puts the focus
 node's own triples next to each result.
 
+**Live demo:** <https://shacl-report.matdata.eu/>. The demo runs on a modest server, so it may slow down when many people use it at the same time. For heavy or regular use, run it locally or host your own instance (see [Install](#install) and [Running as a public website](#running-as-a-public-website)).
+
 ![Viewer with a result opened](screenshot-webapp.png)
 
 ![Shapes explorer](screenshot-shapes.png)
