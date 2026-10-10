@@ -190,6 +190,7 @@ async fn load(State(s): State<AppState>, Json(body): Json<LoadBody>) -> Response
         data: body.data,
         shapes: body.shapes,
         format: None,
+        prefixes: Vec::new(),
     };
     let endpoint = s.endpoint.clone();
     let result = match tokio::task::spawn_blocking(move || load_report(&inputs)).await {

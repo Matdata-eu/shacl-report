@@ -28,6 +28,7 @@ fn main() -> ExitCode {
         data: args.data.clone(),
         shapes: args.shapes.clone(),
         format: args.format,
+        prefixes: args.prefixes.clone(),
     };
     let mut report = match load_report(&inputs) {
         Ok(r) => r,
@@ -107,6 +108,7 @@ fn run_serve(s: ServeArgs) -> ExitCode {
             data: s.data,
             shapes: s.shapes,
             format: s.format,
+            prefixes: s.prefixes,
         })
     } else {
         Preload::None

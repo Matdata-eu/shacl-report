@@ -328,6 +328,7 @@ answers `ok` for load balancers.
 | `--data <FILE>` | Data graph; shows focus-node triples. Without a report, it is validated against `--shapes`. Repeatable. |
 | `--shapes <FILE>` | Shapes graph that was used; shows shape names and constraints, and enables the shapes explorer. Without a report, `--shapes` alone summarises the shapes graph. Repeatable. |
 | `--format <FMT>` | Force the report's input format (`nt`, `ttl`, `rdf`/`xml`, `trig`, `nq`). |
+| `--prefixes <FILE>` | Extra prefixes for shortening IRIs, from SHACL declarations or `@prefix` lines (see [Prefixes](#prefixes)). Repeatable. |
 | `--save-report <FILE>` | Write the report of the built-in validator as Turtle. |
 | `--html <FILE>` | Write a self-contained HTML report. |
 | `--ci` | Exit with code 1 when results at or above `--fail-on` exist. |
@@ -347,6 +348,7 @@ answers `ok` for load balancers.
 | `--shapes <FILE>` | Shapes graph to preload; enough on its own to explore shapes. Repeatable. |
 | `--endpoint <URL>` | SPARQL endpoint holding the data, preset in the SPARQL tab. |
 | `--format <FMT>` | Force the report's input format. |
+| `--prefixes <FILE>` | Extra prefixes for shortening IRIs. Repeatable. |
 | `--bind <ADDR>` | Bind address (default: `127.0.0.1:0`). |
 | `--no-open` | Do not auto-open the system browser. |
 
@@ -377,6 +379,36 @@ can also be set through the environment.
 | `0` | Success (or, without `--ci`, completed even if results exist). |
 | `1` | `--ci` was set and results at or above `--fail-on` were found. |
 | `2` | Error (I/O, parse, no report found, etc.). |
+
+### Prefixes
+
+IRIs are shortened with prefixes from four sources, in this order (the first
+source to claim a prefix name wins):
+
+1. Files given with `--prefixes`. They can declare prefixes the SHACL way,
+   which is handy for a shared prefix file kept next to your shapes:
+
+   ```turtle
+   @prefix sh:  <http://www.w3.org/ns/shacl#> .
+   @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+   <http://example.org/prefixes> sh:declare
+       [ sh:prefix "era" ; sh:namespace "http://data.europa.eu/949/"^^xsd:anyURI ] .
+   ```
+
+   Their `@prefix` lines count too.
+2. The `@prefix` lines of the report, shapes and data files.
+3. `sh:declare` declarations in the shapes, report and data. In the viewer,
+   drop a prefix file in with the shapes to use it.
+4. Well-known prefixes from [prefix.cc](https://prefix.cc), for namespaces that
+   occur in your files but that nothing above declares.
+
+The prefix.cc list is fetched when shacl-report is built, as MatGUI does,
+and embedded in the binary. When prefix.cc cannot be reached, the build
+quietly uses the copy in `assets/prefixes.json`. Set `SHACL_REPORT_OFFLINE=1`
+to skip the download. Cargo does not let a build change the source tree, so
+refresh the committed copy now and then with
+`curl -fsSL https://prefix.cc/popular/all.file.json -o assets/prefixes.json`.
 
 ## How it works
 
@@ -428,7 +460,8 @@ Test fixtures in `tests/fixtures/` were produced with pyshacl from
 
 ## License
 
-Apache-2.0. Bundles [Tabulator](https://tabulator.info) (MIT),
+Apache-2.0. `assets/prefixes.json` comes from [prefix.cc](https://prefix.cc).
+Bundles [Tabulator](https://tabulator.info) (MIT),
 [MatGUI](https://github.com/Matdata-eu/MatGUI) (MIT, see
 `assets/vendor/matgui/NOTICE.md`) and [CodeMirror 6](https://codemirror.net/)
 with codemirror-lang-turtle (MIT, see `assets/vendor/codemirror/NOTICE.md`).

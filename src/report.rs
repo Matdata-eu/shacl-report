@@ -61,6 +61,8 @@ pub struct ReportInputs {
     pub data: Vec<PathBuf>,
     pub shapes: Vec<PathBuf>,
     pub format: Option<InputFormat>,
+    /// Files that only contribute prefixes (SHACL `sh:declare` or `@prefix`).
+    pub prefixes: Vec<PathBuf>,
 }
 
 /// One RDF term, in the same shape the rdf-compare viewer uses.
@@ -240,7 +242,11 @@ impl Report {
 
 /// Load the report (plus optional data and shapes) and build the model.
 pub fn load_report(inputs: &ReportInputs) -> Result<Report> {
+    // Prefix files come first, so their names win over the other files'.
     let mut prefixes = Vec::new();
+    let mut prefix_graph = Graph::new();
+    load_graph(&inputs.prefixes, None, &mut prefix_graph, &mut prefixes)?;
+    crate::prefixes::merge(&mut prefixes, crate::prefixes::declared(&prefix_graph));
     let mut report_graph = Graph::new();
     if let Some(report) = &inputs.report {
         load_graph(
@@ -261,6 +267,7 @@ pub fn load_report(inputs: &ReportInputs) -> Result<Report> {
         shapes: inputs.shapes.iter().map(display).collect(),
     };
     take_report_from_data(&mut report_graph, &mut data_graph, &mut sources);
+    complete_prefixes(&mut prefixes, &report_graph, &shapes_graph, &data_graph);
     let validated =
         if sources.report.is_empty() && !inputs.shapes.is_empty() && !sources.data.is_empty() {
             Some(run_validation(
@@ -338,6 +345,7 @@ pub fn load_report_from_memory_limited(
         shapes: names(shapes),
     };
     take_report_from_data(&mut report_graph, &mut data_graph, &mut sources);
+    complete_prefixes(&mut prefixes, &report_graph, &shapes_graph, &data_graph);
     let validated = if sources.report.is_empty() && !shapes.is_empty() && !sources.data.is_empty() {
         Some(run_validation(
             &shapes_graph,
@@ -358,6 +366,20 @@ pub fn load_report_from_memory_limited(
         prefixes,
         validated,
     )
+}
+
+/// Add SHACL prefix declarations from the loaded graphs, then well-known
+/// prefixes for the namespaces they use that nothing declared.
+fn complete_prefixes(
+    prefixes: &mut Vec<(String, String)>,
+    report: &Graph,
+    shapes: &Graph,
+    data: &Graph,
+) {
+    for g in [shapes, report, data] {
+        crate::prefixes::merge(prefixes, crate::prefixes::declared(g));
+    }
+    crate::prefixes::add_well_known(prefixes, &[report, shapes, data]);
 }
 
 /// Without a report, data files that hold an `sh:ValidationReport` are
