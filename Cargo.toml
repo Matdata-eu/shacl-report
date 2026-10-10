@@ -2,13 +2,13 @@
 name = "shacl-report"
 version = "0.1.0"
 edition = "2024"
-description = "Turn SHACL validation reports from any validator into a readable, filterable web view and a CI-friendly HTML report"
+description = "Validate RDF with SHACL, or read any validator's report, and explore it in a readable web view or a CI-friendly HTML report"
 authors = ["Mathias Vanden Auweele <mathias@matdata.eu>"]
 license = "Apache-2.0"
 homepage = "https://github.com/Matdata-eu/shacl-report"
 repository = "https://github.com/Matdata-eu/shacl-report"
 categories = ["command-line-utilities"]
-keywords = ["rdf", "shacl", "validation", "linked-data", "report"]
+keywords = ["rdf", "shacl", "validation", "sparql", "linked-data"]
 readme = "README.md"
 
 [dependencies]
