@@ -422,3 +422,19 @@ fn validates_uploaded_files() {
             .contains("sh:ValidationReport")
     );
 }
+
+#[test]
+fn opens_a_report_given_as_data_as_the_report() {
+    use shacl_report::report::{ReportInputs, load_report};
+    let r = load_report(&ReportInputs {
+        report: None,
+        data: vec![fixtures("report-pyshacl.ttl")],
+        shapes: vec![fixtures("shapes.ttl")],
+        format: None,
+    })
+    .unwrap();
+    assert_eq!(r.stats.total, 11);
+    assert!(r.validation.is_none());
+    assert!(r.sources.report.ends_with("report-pyshacl.ttl"));
+    assert!(r.sources.data.is_empty());
+}

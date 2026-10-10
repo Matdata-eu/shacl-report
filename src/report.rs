@@ -254,8 +254,15 @@ pub fn load_report(inputs: &ReportInputs) -> Result<Report> {
     load_graph(&inputs.shapes, None, &mut shapes_graph, &mut prefixes)?;
     let mut data_graph = Graph::new();
     load_graph(&inputs.data, None, &mut data_graph, &mut prefixes)?;
+    let display = |p: &PathBuf| p.display().to_string();
+    let mut sources = Sources {
+        report: inputs.report.as_ref().map(display).unwrap_or_default(),
+        data: inputs.data.iter().map(display).collect(),
+        shapes: inputs.shapes.iter().map(display).collect(),
+    };
+    take_report_from_data(&mut report_graph, &mut data_graph, &mut sources);
     let validated =
-        if inputs.report.is_none() && !inputs.shapes.is_empty() && !inputs.data.is_empty() {
+        if sources.report.is_empty() && !inputs.shapes.is_empty() && !sources.data.is_empty() {
             Some(run_validation(
                 &shapes_graph,
                 &data_graph,
@@ -267,12 +274,6 @@ pub fn load_report(inputs: &ReportInputs) -> Result<Report> {
             None
         };
 
-    let display = |p: &PathBuf| p.display().to_string();
-    let sources = Sources {
-        report: inputs.report.as_ref().map(display).unwrap_or_default(),
-        data: inputs.data.iter().map(display).collect(),
-        shapes: inputs.shapes.iter().map(display).collect(),
-    };
     finish(
         &report_graph,
         &shapes_graph,
@@ -330,7 +331,14 @@ pub fn load_report_from_memory_limited(
         limits,
         &mut triples,
     )?;
-    let validated = if report.is_none() && !shapes.is_empty() && !data.is_empty() {
+    let names = |files: &[MemoryFile]| files.iter().map(|f| f.name.clone()).collect();
+    let mut sources = Sources {
+        report: report.map(|r| r.name.clone()).unwrap_or_default(),
+        data: names(data),
+        shapes: names(shapes),
+    };
+    take_report_from_data(&mut report_graph, &mut data_graph, &mut sources);
+    let validated = if sources.report.is_empty() && !shapes.is_empty() && !sources.data.is_empty() {
         Some(run_validation(
             &shapes_graph,
             &data_graph,
@@ -342,12 +350,6 @@ pub fn load_report_from_memory_limited(
         None
     };
 
-    let names = |files: &[MemoryFile]| files.iter().map(|f| f.name.clone()).collect();
-    let sources = Sources {
-        report: report.map(|r| r.name.clone()).unwrap_or_default(),
-        data: names(data),
-        shapes: names(shapes),
-    };
     finish(
         &report_graph,
         &shapes_graph,
@@ -356,6 +358,26 @@ pub fn load_report_from_memory_limited(
         prefixes,
         validated,
     )
+}
+
+/// Without a report, data files that hold an `sh:ValidationReport` are
+/// almost certainly a report given as data by mistake. Validating them would
+/// find nothing to check, so open them as the report instead.
+fn take_report_from_data(report: &mut Graph, data: &mut Graph, sources: &mut Sources) {
+    if !sources.report.is_empty()
+        || data
+            .subjects_for_predicate_object(rdf::TYPE, sh::VALIDATION_REPORT)
+            .next()
+            .is_none()
+    {
+        return;
+    }
+    *report = std::mem::take(data);
+    sources.report = std::mem::take(&mut sources.data).join(", ");
+    eprintln!(
+        "note: {} holds a validation report; opening it as the report instead of validating it as data",
+        sources.report
+    );
 }
 
 fn finish(
