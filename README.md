@@ -1,11 +1,12 @@
 # shacl-report
 
-A small, fast CLI that turns a [SHACL](https://www.w3.org/TR/shacl/) validation
-report into something people can actually read, and lets you explore the shapes
-behind it and run them as SPARQL against your triple store. It works with the report of
-**any** validator (pyshacl, Apache Jena, TopBraid, rudof, RDF4J, …), because it
-reads the standard `sh:ValidationReport` vocabulary rather than running
-validation itself.
+A small, fast CLI that validates RDF with [SHACL](https://www.w3.org/TR/shacl/)
+and turns the validation report into something people can actually read. It
+lets you explore the shapes behind it and run them as SPARQL against your
+triple store. Validate with the built-in engine (SHACL Core and SHACL-SPARQL,
+passing the W3C test suite), or bring the report of **any** other validator
+(pyshacl, Apache Jena, TopBraid, rudof, RDF4J, …): it reads the standard
+`sh:ValidationReport` vocabulary.
 
 Validators produce reports as raw RDF. On a real data set that is hundreds of
 anonymous `sh:ValidationResult` nodes pointing at blank-node property shapes.
@@ -27,6 +28,14 @@ node's own triples next to each result.
 
 ## Features
 
+- **Built-in SHACL validation.** Give data and shapes without a report and
+  `shacl-report` validates itself: every SHACL Core constraint, `sh:sparql`
+  constraints and SPARQL-based constraint components (pre-binding of `$this`,
+  `$value`, `$PATH`, `$currentShape`, `$shapesGraph` and parameters). It passes
+  all 120 tests of the W3C SHACL core and SPARQL test suites (vendored in
+  `tests/w3c`) and gives the same results as pyshacl on the fixtures.
+  `--save-report` writes the `sh:ValidationReport` as Turtle; in the viewer it
+  is under Export.
 - **Validator-agnostic.** Reads any RDF file containing an
   `sh:ValidationReport` (or bare `sh:ValidationResult` nodes).
 - **Readable shapes.** Property shapes are shown as `Parent shape › path`,
@@ -78,8 +87,10 @@ node's own triples next to each result.
 
 - **Describe any IRI**, as in MatGUI: Ctrl+click (Cmd+click on a Mac) an IRI
   anywhere in the report, the details panel or the shapes explorer to load its
-  triples from the endpoint into MatGUI's Turtle view; Ctrl+Shift+click loads
-  the triples that point to it. Ctrl+click IRIs in that view to keep exploring.
+  triples from the endpoint into a Turtle viewer; Ctrl+Shift+click loads the
+  triples that point to it. In the viewer, Ctrl+click any IRI, prefixed name
+  (`ex:carol`) or `a` to keep exploring. The viewer is MatGUI's Response view,
+  ported with its CodeMirror 6 editor and Turtle grammar, plus prefixed names.
 
   In the local viewer, queries can be relayed through `shacl-report` so
   endpoints that do not send CORS headers work too.
@@ -109,14 +120,23 @@ cargo install shacl-report
 
 ## Usage
 
-First validate with the tool you already use, e.g.:
+Validate with the built-in engine:
+
+```sh
+# Validate, print a summary and open the results in the browser
+shacl-report --data data.ttl --shapes shapes.ttl --view
+
+# Validate in CI, keep the report and fail the build on violations
+shacl-report --data data.ttl --shapes shapes.ttl \
+    --save-report report.ttl --html shacl-report.html --ci
+```
+
+Or read the report of the validator you already use:
 
 ```sh
 pyshacl -s shapes.ttl -f turtle data.ttl > report.ttl
 # or: shacl validate --shapes shapes.ttl --data data.ttl > report.ttl   (Apache Jena)
 ```
-
-Then:
 
 ```sh
 # Summary on stderr
@@ -202,9 +222,10 @@ endpoint must allow CORS.
 
 | Flag | Description |
 | --- | --- |
-| `--data <FILE>` | Data graph that was validated; shows focus-node triples. Repeatable. |
+| `--data <FILE>` | Data graph; shows focus-node triples. Without a report, it is validated against `--shapes`. Repeatable. |
 | `--shapes <FILE>` | Shapes graph that was used; shows shape names and constraints, and enables the shapes explorer. Without a report, `--shapes` alone summarises the shapes graph. Repeatable. |
 | `--format <FMT>` | Force the report's input format (`nt`, `ttl`, `rdf`/`xml`, `trig`, `nq`). |
+| `--save-report <FILE>` | Write the report of the built-in validator as Turtle. |
 | `--html <FILE>` | Write a self-contained HTML report. |
 | `--ci` | Exit with code 1 when results at or above `--fail-on` exist. |
 | `--fail-on <SEV>` | `violation` (default), `warning` or `info`. |
@@ -219,7 +240,7 @@ endpoint must allow CORS.
 | Flag | Description |
 | --- | --- |
 | `--report <FILE>` | Report to preload. |
-| `--data <FILE>` | Data graph to preload. Repeatable. |
+| `--data <FILE>` | Data graph to preload; validated against `--shapes` when no report is given. Repeatable. |
 | `--shapes <FILE>` | Shapes graph to preload; enough on its own to explore shapes. Repeatable. |
 | `--endpoint <URL>` | SPARQL endpoint holding the data, preset in the SPARQL tab. |
 | `--format <FMT>` | Force the report's input format. |
@@ -237,7 +258,9 @@ endpoint must allow CORS.
 ## How it works
 
 1. The report, shapes and data files are each parsed into an in-memory graph
-   (quad formats are flattened).
+   (quad formats are flattened). Without a report, the built-in engine
+   (`src/validate`) validates the data against the shapes and produces the
+   report graph; SPARQL runs on Oxigraph's evaluator (`spareval`).
 2. Results are collected from `sh:result` on every `sh:ValidationReport`
    (falling back to un-nested `sh:ValidationResult` nodes) and flattened:
    severity, focus node, path, value, messages, source shape and component.
@@ -257,8 +280,12 @@ endpoint must allow CORS.
 
 ## Limitations
 
-- `shacl-report` does not validate; it reads reports. The generated SPARQL is a
-  way to explore the data, not a conforming SHACL engine: nested and logical
+- The built-in validator covers SHACL Core and SHACL-SPARQL, not SHACL
+  Advanced Features (rules, SPARQL targets, functions) or `owl:imports`.
+  Results of nested shapes (`sh:node`, `sh:or`, …) are not added as
+  `sh:detail`.
+- The SPARQL generated from shapes for the SPARQL tab is a way to explore the
+  data in your triple store, not a conforming SHACL engine: nested and logical
   constraints are not translated, and comparisons follow your endpoint's
   SPARQL semantics.
 - Nested `sh:detail` results are counted but not yet shown individually.
@@ -278,6 +305,9 @@ Test fixtures in `tests/fixtures/` were produced with pyshacl from
 
 ## License
 
-Apache-2.0. Bundles [Tabulator](https://tabulator.info) (MIT) and
+Apache-2.0. Bundles [Tabulator](https://tabulator.info) (MIT),
 [MatGUI](https://github.com/Matdata-eu/MatGUI) (MIT, see
-`assets/vendor/matgui/NOTICE.md`).
+`assets/vendor/matgui/NOTICE.md`) and [CodeMirror 6](https://codemirror.net/)
+with codemirror-lang-turtle (MIT, see `assets/vendor/codemirror/NOTICE.md`).
+`tests/w3c` holds the W3C SHACL test suite under the W3C Software and Document
+License (`tests/w3c/LICENSE.md`).
