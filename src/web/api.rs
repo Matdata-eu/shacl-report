@@ -24,6 +24,7 @@ pub fn router(state: AppState) -> Router {
         .route("/api/meta", get(meta))
         .route("/api/report", get(report))
         .route("/api/export.html", get(export_html))
+        .route("/api/report.ttl", get(report_turtle))
         .route("/api/load", post(load))
         .route(
             "/api/sparql",
@@ -112,6 +113,32 @@ async fn export_html(State(s): State<AppState>) -> Response {
         Ok(Err(e)) => (StatusCode::INTERNAL_SERVER_ERROR, format!("{e:#}")).into_response(),
         Err(_) => (StatusCode::INTERNAL_SERVER_ERROR, "task panic").into_response(),
     }
+}
+
+/// The report the built-in validator produced, as Turtle.
+async fn report_turtle(State(s): State<AppState>) -> Response {
+    let turtle = s
+        .data
+        .lock()
+        .await
+        .as_ref()
+        .and_then(|d| d.report_turtle.clone());
+    let Some(turtle) = turtle else {
+        return (StatusCode::NOT_FOUND, "no generated validation report").into_response();
+    };
+    let mut resp = Response::new(Body::from(turtle));
+    let headers = resp.headers_mut();
+    headers.insert(
+        header::CONTENT_TYPE,
+        "text/turtle; charset=utf-8".parse().unwrap(),
+    );
+    headers.insert(
+        header::CONTENT_DISPOSITION,
+        "attachment; filename=\"validation-report.ttl\""
+            .parse()
+            .unwrap(),
+    );
+    resp
 }
 
 #[derive(Deserialize)]
