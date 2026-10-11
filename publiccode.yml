@@ -1,0 +1,53 @@
+publiccodeYmlVersion: '0'
+name: shacl-report
+url: https://github.com/Matdata-eu/shacl-report
+landingURL: https://shacl-report.matdata.eu/
+softwareVersion: 1.0.0
+releaseDate: '2026-10-10'
+platforms:
+- linux
+- windows
+- mac
+- web
+categories:
+- data-analytics
+- compliance-management
+- knowledge-management
+developmentStatus: stable
+softwareType: standalone/other
+organisation:
+  uri: https://matdata.eu
+  name: Matdata
+intendedAudience:
+  scope:
+  - government
+  - science-and-technology
+  - infrastructures
+  - transportation
+description:
+  en:
+    shortDescription: Validates RDF with SHACL, or reads any validator's report, and shows it in a readable
+      web view.
+    longDescription: |
+      SHACL validation reports are hard to read as raw RDF. shacl-report validates data with SHACL Core and SHACL-SPARQL (it passes the W3C test suite), or reads the report of any other validator.
+
+      It turns the result into a readable web view or a standalone HTML report for CI. Each result names its shape, explains the problem in plain language, shows the broken constraint and lists the focus node's own triples. A shapes explorer describes every shape and its targets, and a SPARQL tab runs the shapes as queries against a triple store. This helps data publishers check conformance with application profiles such as DCAT-AP.
+    documentation: https://shacl-report.matdata.eu/
+    features:
+    - Built-in SHACL Core and SHACL-SPARQL validation
+    - Reads reports from any SHACL validator
+    - Plain-language explanation of each result
+    - Web viewer and standalone HTML report for CI
+    - Shapes explorer and SPARQL tab
+legal:
+  license: Apache-2.0
+  mainCopyrightOwner: Matdata
+maintenance:
+  type: internal
+  contacts:
+  - name: Mathias Vanden Auweele
+    affiliation: Matdata
+localisation:
+  localisationReady: false
+  availableLanguages:
+  - en
