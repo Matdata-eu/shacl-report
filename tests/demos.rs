@@ -19,6 +19,7 @@ fn load(report: Option<&str>, shapes: &str, data: &str) -> Report {
         shapes: vec![demo(shapes)],
         format: None,
         prefixes: Vec::new(),
+        coverage: Default::default(),
     })
     .unwrap()
 }
