@@ -1180,7 +1180,7 @@ fn aggregate(w: &Walker<'_, '_>, opts: &CoverageOptions) -> Result<Coverage> {
                 .then_with(|| a.iri.cmp(&b.iri))
         });
         rows.push(ClassCoverage {
-            parents: iri.as_deref().map(&nearest_parents).unwrap_or_default(),
+            parents: iri.as_deref().map(nearest_parents).unwrap_or_default(),
             key: k,
             kind,
             iri,
