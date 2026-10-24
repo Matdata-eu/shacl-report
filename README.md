@@ -14,7 +14,7 @@ anonymous `sh:ValidationResult` nodes pointing at blank-node property shapes.
 names every shape, shows the constraint that was broken, and puts the focus
 node's own triples next to each result.
 
-**Live demo:** <https://shacl-report.matdata.eu/>. No files at hand? Open one of the demo data sets straight away: a [library catalogue](https://shacl-report.matdata.eu/?demo=library) with everyday SHACL Core mistakes, a [railway network](https://shacl-report.matdata.eu/?demo=railway) checked with SHACL-SPARQL, or the library's [pyshacl report](https://shacl-report.matdata.eu/?demo=pyshacl) made readable. The files are in [`assets/demos`](assets/demos). The demo runs on a modest server, so it may slow down when many people use it at the same time. For heavy or regular use, run it locally or host your own instance (see [Install](#install) and [Running as a public website](#running-as-a-public-website)).
+**Live demo:** <https://shacl-report.matdata.eu/>. No files at hand? Open one of the demo data sets straight away: a [library catalogue](https://shacl-report.matdata.eu/?demo=library) with everyday SHACL Core mistakes, a [railway network](https://shacl-report.matdata.eu/?demo=railway) checked with SHACL-SPARQL, the library's [pyshacl report](https://shacl-report.matdata.eu/?demo=pyshacl) made readable, or a [rule coverage](https://shacl-report.matdata.eu/?demo=coverage) check that finds the data no rule looks at. The files are in [`assets/demos`](assets/demos). The demo runs on a modest server, so it may slow down when many people use it at the same time. For heavy or regular use, run it locally or host your own instance (see [Install](#install) and [Running as a public website](#running-as-a-public-website)).
 
 ![Viewer with a result opened](screenshot-webapp.png)
 
@@ -61,9 +61,9 @@ node's own triples next to each result.
   - filters for severity, problem type and shape, plus full-text search;
   - a details panel with the rule, the resource's data and keyboard
     navigation (`j`/`k`, `/` to search, `Esc` to close);
-  - drag-and-drop loading of the report, shapes and data files, and three
+  - drag-and-drop loading of the report, shapes and data files, and four
     demo data sets to try it without files (also as links: `/?demo=library`,
-    `/?demo=railway`, `/?demo=pyshacl`);
+    `/?demo=railway`, `/?demo=pyshacl`, `/?demo=coverage`);
   - a short user guide behind the help (?) button;
   - light and dark themes, and a layout that works on a phone;
   - CSV export of the shown results and a standalone HTML download.

@@ -94,6 +94,16 @@ pub static ASSETS: &[Asset] = &[
         "assets/demos/library-report-pyshacl.ttl"
     ),
     txt!(
+        "/assets/demos/coverage-shapes.ttl",
+        "text/turtle; charset=utf-8",
+        "assets/demos/coverage-shapes.ttl"
+    ),
+    txt!(
+        "/assets/demos/coverage-data.ttl",
+        "text/turtle; charset=utf-8",
+        "assets/demos/coverage-data.ttl"
+    ),
+    txt!(
         "/assets/demos/railway-shapes.ttl",
         "text/turtle; charset=utf-8",
         "assets/demos/railway-shapes.ttl"

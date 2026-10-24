@@ -31,6 +31,15 @@
       data: ["railway-data.ttl"],
     },
     {
+      id: "coverage",
+      title: "Rule coverage",
+      action: "Check coverage",
+      tab: "coverage",
+      text: "People, employees, organisations and vehicles where the rules miss things: a class without a shape, a subclass only the shapes graph knows, a typo in a path, a shape that matches nothing and untyped blank nodes.",
+      shapes: ["coverage-shapes.ttl"],
+      data: ["coverage-data.ttl"],
+    },
+    {
       id: "pyshacl",
       title: "A pyshacl report",
       action: "Open report",
@@ -938,6 +947,7 @@
         await loadDemo(demo);
         hideModal();
         await loadFromServer();
+        openDemoTab(demo);
       } catch (err) {
         msg.className = "form-msg";
         msg.textContent = err.message;
@@ -965,6 +975,11 @@
       body: JSON.stringify(body),
     });
     if (!resp.ok) throw new Error(await resp.text());
+  }
+
+  /** Show the tab a demo is about, once its report is loaded. */
+  function openDemoTab(demo) {
+    if (demo?.tab && state.report?.[demo.tab] !== undefined) switchTab(demo.tab);
   }
 
   function bytesToBase64(bytes) {
@@ -1418,6 +1433,7 @@
       }
     }
     await loadFromServer();
+    openDemoTab(demo);
   }
 
   // ---------- help ----------
