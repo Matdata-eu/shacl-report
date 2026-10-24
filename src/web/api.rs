@@ -3,6 +3,7 @@
 use super::{AppState, assets};
 use crate::input::MemoryFile;
 use crate::report::{Report, ReportInputs, load_report, load_report_from_memory_limited};
+use axum::Extension;
 use axum::Json;
 use axum::Router;
 use axum::body::Body;
@@ -26,7 +27,7 @@ pub fn router(state: AppState) -> Router {
     Router::new()
         .route("/", get(root))
         .route("/healthz", get(|| async { "ok" }))
-        .route("/assets/*path", get(asset))
+        .route("/assets/{*path}", get(asset))
         .route("/licenses", get(licenses))
         .route("/api/meta", get(meta))
         .route("/api/session", axum::routing::delete(end_session))
@@ -248,13 +249,13 @@ fn decode(f: UploadFile) -> anyhow::Result<MemoryFile> {
 
 async fn upload(
     State(s): State<AppState>,
-    peer: Option<ConnectInfo<SocketAddr>>,
+    peer: Option<Extension<ConnectInfo<SocketAddr>>>,
     headers: HeaderMap,
     Json(body): Json<UploadBody>,
 ) -> Response {
     let job = match &s.public {
         Some(p) => {
-            let ip = p.client_ip(&headers, peer.map(|c| c.0.ip()));
+            let ip = p.client_ip(&headers, peer.map(|Extension(c)| c.0.ip()));
             match p.begin(&headers, ip).await {
                 Ok(job) => Some(job),
                 Err(refusal) => return refusal.into_response(),
