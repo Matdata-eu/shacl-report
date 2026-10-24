@@ -341,7 +341,7 @@
       let h = renderTiles();
       h += renderHints();
       h += `<div class="toolbar cov-toolbar"><div class="search">${'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6" /><path d="M20 20l-4.5-4.5" /></svg>'}<input id="cov-search" type="search" placeholder="Find a class or property…" aria-label="Find a class or property" value="${esc(st.query)}" /></div>
-        <div class="toolbar-group"><span class="toolbar-label">Break down by</span><div class="segmented" role="radiogroup" aria-label="Break down by">
+        <div class="toolbar-group"><span class="toolbar-label">Focus on:</span><div class="segmented" role="radiogroup" aria-label="Focus on">
         <button data-view="classes" role="radio" class="${st.view === "classes" ? "active" : ""}" aria-checked="${st.view === "classes"}">Class</button>
         <button data-view="categories" role="radio" class="${st.view === "categories" ? "active" : ""}" aria-checked="${st.view === "categories"}">Rule category</button></div></div></div>`;
       h += st.view === "classes" ? renderClasses() : renderCategories();
@@ -465,7 +465,7 @@
         const starter = starterClass(row);
         if (starter) h += starterHtml(starter, "Starter shape, from the data");
       }
-      h += `<div class="cov-actions"><button class="btn primary" data-action="class-query">${ICON.code}Find these in the endpoint</button>${row.properties.length ? `<button class="btn" data-toggle="${esc(row.key)}">${st.open.has(row.key) ? "Hide" : "Show"} properties</button>` : ""}</div>`;
+      h += `<div class="cov-actions"><button class="btn primary" data-action="class-query">${ICON.code}Find these in the endpoint</button></div>`;
       return h;
     }
 
