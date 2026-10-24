@@ -1,0 +1,1334 @@
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <http://example.org/people#> .
+@prefix p:    <http://example.org/people/id/> .
+
+# Generated demo data for the coverage report. ex:Employee is a subclass of
+# ex:Person here in the data graph, so ex:PersonShape applies to employees.
+ex:Employee rdfs:subClassOf ex:Person .
+
+
+p:person000 a ex:Person ;
+    ex:name "Katrien Maes" ;
+    rdfs:label "Katrien Maes"@en ;
+    ex:birthDate "1953-02-27"^^xsd:date ;
+    ex:email "katrien0@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 0" ; ex:postalCode "1000" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 000 000" ] ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 000 111" ] ;
+    ex:knows p:person053 ;
+    ex:nickname "Kat" ;
+    ex:favouriteColour "blue" .
+
+p:address001 a ex:Address ; ex:street "Dorpsstraat 1" ; ex:postalCode "2001 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/1> .
+
+p:person001 a ex:Person ;
+    ex:name "Bart Dubois" ;
+    rdfs:label "Bart Dubois"@en ;
+    ex:birthDate "1964-11-21"^^xsd:date ;
+    ex:email "bart1@example.org" ;
+    ex:address p:address001 ;
+    ex:nickname "Bar" .
+
+p:person002 a ex:Person ;
+    ex:name "Jan Goossens" ;
+    rdfs:label "Jan Goossens"@en ;
+    ex:birthDate "1957-10-10"^^xsd:date ;
+    ex:email "jan2@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 2" ; ex:postalCode "1002" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Chat ; ex:value "+32 470 002 000" ] ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 002 111" ] ;
+    ex:knows p:person070 .
+
+p:person003 a ex:Person ;
+    ex:name "Vera Jacobs" ;
+    rdfs:label "Vera Jacobs"@en ;
+    ex:birthDate "1984-07-25"^^xsd:date ;
+    ex:email "vera3@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 3" ; ex:postalCode "1003" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 003 000" ] .
+
+p:person004 a ex:Person ;
+    ex:name "Tom Willems" ;
+    rdfs:label "Tom Willems"@en ;
+    ex:birthDate "1971-12-15"^^xsd:date ;
+    ex:email "tom4@example.org" ;
+    ex:knows p:person021 .
+
+p:address005 a ex:Address ; ex:street "Dorpsstraat 5" ; ex:postalCode "2005 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/5> .
+
+p:person005 a ex:Person ;
+    ex:name "Pieter Goossens" ;
+    rdfs:label "Pieter Goossens"@en ;
+    ex:birthDate "1992-02-25"^^xsd:date ;
+    ex:email "pieter5@example.org" ;
+    ex:address p:address005 ;
+    ex:contactPoint [ ex:channel ex:Chat ; ex:value "+32 470 005 000" ] ;
+    ex:knows p:person063 .
+
+p:address006 a ex:Address ; ex:street "Dorpsstraat 6" ; ex:postalCode "2006 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/6> .
+
+p:person006 a ex:Person ;
+    ex:name "Chloé Willems" ;
+    rdfs:label "Chloé Willems"@en ;
+    ex:birthDate "1992-02-02"^^xsd:date ;
+    ex:email "chloé6@example.org" ;
+    ex:address p:address006 ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 006 000" ] ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 006 111" ] .
+
+p:address007 a ex:Address ; ex:street "Dorpsstraat 7" ; ex:postalCode "2007 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/7> .
+
+p:person007 a ex:Person ;
+    ex:name "Olga Claes" ;
+    rdfs:label "Olga Claes"@en ;
+    ex:birthDate "1957-08-02"^^xsd:date ;
+    ex:email "olga7@example.org" ;
+    ex:address p:address007 ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 007 000" ] .
+
+p:address008 a ex:Address ; ex:street "Dorpsstraat 8" ; ex:postalCode "2008 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/8> .
+
+p:person008 a ex:Person ;
+    ex:name "Marie De Smet" ;
+    rdfs:label "Marie De Smet"@en ;
+    ex:birthDate "1958-07-28"^^xsd:date ;
+    ex:email "marie8@example.org" ;
+    ex:address p:address008 ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 008 000" ] ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 008 111" ] ;
+    ex:knows p:person022 ;
+    ex:nickname "Mar" .
+
+p:person009 a ex:Person ;
+    ex:name "Ann Wouters" ;
+    rdfs:label "Ann Wouters"@en ;
+    ex:birthDate "1961-05-10"^^xsd:date ;
+    ex:email "ann9@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 9" ; ex:postalCode "1009" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 009 000" ] ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 009 111" ] .
+
+p:person010 a ex:Person ;
+    ex:name "Bart Wouters" ;
+    rdfs:label "Bart Wouters"@en ;
+    ex:birthDate "1999-11-26"^^xsd:date ;
+    ex:email "bart10@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 10" ; ex:postalCode "1010" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Chat ; ex:value "+32 470 010 000" ] ;
+    ex:knows p:person024 ;
+    ex:nickname "Bar" .
+
+p:address011 a ex:Address ; ex:street "Dorpsstraat 11" ; ex:postalCode "2011 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/11> .
+
+p:person011 a ex:Person ;
+    ex:name "Filip Janssens" ;
+    rdfs:label "Filip Janssens"@en ;
+    ex:birthDate "1953-02-01"^^xsd:date ;
+    ex:email "filip11@example.org" ;
+    ex:address p:address011 ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 011 000" ] ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 011 111" ] .
+
+p:person012 a ex:Person ;
+    ex:name "Inge Claes" ;
+    rdfs:label "Inge Claes"@en ;
+    ex:birthDate "1980-02-04"^^xsd:date ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 012 000" ] ;
+    ex:knows p:person010 ;
+    ex:nickname "Ing" .
+
+p:person013 a ex:Person ;
+    ex:name "Inge Wouters" ;
+    rdfs:label "Inge Wouters"@en ;
+    ex:birthDate "1960-09-01"^^xsd:date ;
+    ex:email "inge13@example.org" ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 013 000" ] .
+
+p:person014 a ex:Person ;
+    ex:name "Jan Janssens" ;
+    rdfs:label "Jan Janssens"@en ;
+    ex:birthDate "1966-09-12"^^xsd:date ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 14" ; ex:postalCode "1014" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Chat ; ex:value "+32 470 014 000" ] ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 014 111" ] .
+
+p:person015 a ex:Person ;
+    ex:name "Greet Jacobs" ;
+    rdfs:label "Greet Jacobs"@en ;
+    ex:birthDate "1997-04-07"^^xsd:date ;
+    ex:email "greet15@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 15" ; ex:postalCode "1015" ; ex:city "Leuven" ; ex:country "BE" ] .
+
+p:person016 a ex:Person ;
+    ex:name "Vera Claes" ;
+    rdfs:label "Vera Claes"@en ;
+    ex:birthDate "1996-06-12"^^xsd:date ;
+    ex:email "vera16@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 16" ; ex:postalCode "1016" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 016 000" ] ;
+    ex:knows p:person078 .
+
+p:address017 a ex:Address ; ex:street "Dorpsstraat 17" ; ex:postalCode "2017 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/17> .
+
+p:person017 a ex:Person ;
+    ex:name "Luc Janssens" ;
+    rdfs:label "Luc Janssens"@en ;
+    ex:birthDate "1957-07-26"^^xsd:date ;
+    ex:email "luc17@example.org" ;
+    ex:address p:address017 ;
+    ex:contactPoint [ ex:channel ex:Chat ; ex:value "+32 470 017 000" ] ;
+    ex:knows p:person092 .
+
+p:address018 a ex:Address ; ex:street "Dorpsstraat 18" ; ex:postalCode "2018 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/18> .
+
+p:person018 a ex:Person ;
+    ex:name "Chloé Maes" ;
+    rdfs:label "Chloé Maes"@en ;
+    ex:birthDate "1958-01-05"^^xsd:date ;
+    ex:email "chloé18@example.org" ;
+    ex:address p:address018 ;
+    ex:contactPoint [ ex:channel ex:Chat ; ex:value "+32 470 018 000" ] ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 018 111" ] .
+
+p:person019 a ex:Person ;
+    ex:name "Els Peeters" ;
+    rdfs:label "Els Peeters"@en ;
+    ex:birthDate "1996-11-04"^^xsd:date ;
+    ex:email "els19@example.org" ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 019 000" ] ;
+    ex:nickname "Els" .
+
+p:person020 a ex:Person ;
+    ex:name "Jan De Smet" ;
+    rdfs:label "Jan De Smet"@en ;
+    ex:birthDate "1987-06-09"^^xsd:date ;
+    ex:email "jan20@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 20" ; ex:postalCode "1020" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 020 000" ] ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 020 111" ] .
+
+p:address021 a ex:Address ; ex:street "Dorpsstraat 21" ; ex:postalCode "2021 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/21> .
+
+p:person021 a ex:Person ;
+    ex:name "Rik Maes" ;
+    rdfs:label "Rik Maes"@en ;
+    ex:birthDate "1983-09-01"^^xsd:date ;
+    ex:address p:address021 ;
+    ex:knows p:person060 .
+
+p:address022 a ex:Address ; ex:street "Dorpsstraat 22" ; ex:postalCode "2022 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/22> .
+
+p:person022 a ex:Person ;
+    ex:name "Bart Claes" ;
+    rdfs:label "Bart Claes"@en ;
+    ex:birthDate "1983-09-16"^^xsd:date ;
+    ex:email "bart22@example.org" ;
+    ex:address p:address022 ;
+    ex:knows p:person005 .
+
+p:address023 a ex:Address ; ex:street "Dorpsstraat 23" ; ex:postalCode "2023 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/23> .
+
+p:person023 a ex:Person ;
+    ex:name "Sara Peeters" ;
+    rdfs:label "Sara Peeters"@en ;
+    ex:birthDate "1954-08-11"^^xsd:date ;
+    ex:email "sara23@example.org" ;
+    ex:address p:address023 ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 023 000" ] ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 023 111" ] ;
+    ex:knows p:person061 .
+
+p:person024 a ex:Person ;
+    ex:name "Rik Willems" ;
+    rdfs:label "Rik Willems"@en ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 24" ; ex:postalCode "1024" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 024 000" ] ;
+    ex:knows p:person040 ;
+    ex:nickname "Rik" .
+
+p:address025 a ex:Address ; ex:street "Dorpsstraat 25" ; ex:postalCode "2025 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/25> .
+
+p:person025 a ex:Person ;
+    ex:name "Chloé Jacobs" ;
+    rdfs:label "Chloé Jacobs"@en ;
+    ex:birthDate "2000-02-25"^^xsd:date ;
+    ex:email "chloé25@example.org" ;
+    ex:address p:address025 ;
+    ex:knows p:person017 .
+
+p:address026 a ex:Address ; ex:street "Dorpsstraat 26" ; ex:postalCode "2026 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/26> .
+
+p:person026 a ex:Person ;
+    ex:name "Dirk Goossens" ;
+    rdfs:label "Dirk Goossens"@en ;
+    ex:birthDate "1960-11-27"^^xsd:date ;
+    ex:email "dirk26@example.org" ;
+    ex:address p:address026 ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 026 000" ] ;
+    ex:knows p:person045 ;
+    ex:nickname "Dir" .
+
+p:person027 a ex:Person ;
+    ex:name "Ann Claes" ;
+    rdfs:label "Ann Claes"@en ;
+    ex:birthDate "1978-12-01"^^xsd:date ;
+    ex:email "ann27@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 27" ; ex:postalCode "1027" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:knows p:person029 .
+
+p:address028 a ex:Address ; ex:street "Dorpsstraat 28" ; ex:postalCode "2028 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/28> .
+
+p:person028 a ex:Person ;
+    ex:name "Inge Willems" ;
+    rdfs:label "Inge Willems"@en ;
+    ex:birthDate "1999-03-09"^^xsd:date ;
+    ex:email "inge28@example.org" ;
+    ex:address p:address028 ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 028 000" ] ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 028 111" ] ;
+    ex:knows p:person065 .
+
+p:person029 a ex:Person ;
+    ex:name "Chloé Willems" ;
+    rdfs:label "Chloé Willems"@en ;
+    ex:birthDate "1994-03-14"^^xsd:date ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 29" ; ex:postalCode "1029" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:nickname "Chl" .
+
+p:address030 a ex:Address ; ex:street "Dorpsstraat 30" ; ex:postalCode "2030 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/30> .
+
+p:person030 a ex:Person ;
+    ex:name "Chloé Willems" ;
+    rdfs:label "Chloé Willems"@en ;
+    ex:birthDate "1979-01-11"^^xsd:date ;
+    ex:address p:address030 ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 030 000" ] ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 030 111" ] ;
+    ex:knows p:person030 .
+
+p:person031 a ex:Person ;
+    ex:name "Inge Peeters" ;
+    rdfs:label "Inge Peeters"@en ;
+    ex:birthDate "1969-11-10"^^xsd:date ;
+    ex:email "inge31@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 31" ; ex:postalCode "1031" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 031 000" ] ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 031 111" ] ;
+    ex:knows p:person002 ;
+    ex:favouriteColour "green" .
+
+p:person032 a ex:Person ;
+    ex:name "Rik De Smet" ;
+    rdfs:label "Rik De Smet"@en ;
+    ex:email "rik32@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 32" ; ex:postalCode "1032" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Chat ; ex:value "+32 470 032 000" ] ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 032 111" ] .
+
+p:address033 a ex:Address ; ex:street "Dorpsstraat 33" ; ex:postalCode "2033 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/33> .
+
+p:person033 a ex:Person ;
+    ex:name "Rik Willems" ;
+    rdfs:label "Rik Willems"@en ;
+    ex:birthDate "1964-06-07"^^xsd:date ;
+    ex:address p:address033 ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 033 000" ] ;
+    ex:favouriteColour "red" .
+
+p:address034 a ex:Address ; ex:street "Dorpsstraat 34" ; ex:postalCode "2034 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/34> .
+
+p:person034 a ex:Person ;
+    ex:name "Inge Goossens" ;
+    rdfs:label "Inge Goossens"@en ;
+    ex:birthDate "1955-11-27"^^xsd:date ;
+    ex:email "inge34@example.org" ;
+    ex:address p:address034 ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 034 000" ] ;
+    ex:contactPoint [ ex:channel ex:Chat ; ex:value "+32 470 034 111" ] ;
+    ex:knows p:person058 ;
+    ex:nickname "Ing" .
+
+p:person035 a ex:Person ;
+    ex:name "Ann Willems" ;
+    rdfs:label "Ann Willems"@en ;
+    ex:birthDate "1971-09-11"^^xsd:date ;
+    ex:email "ann35@example.org" ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 035 000" ] ;
+    ex:knows p:person000 ;
+    ex:nickname "Ann" ;
+    ex:favouriteColour "blue" .
+
+p:person036 a ex:Person ;
+    ex:name "Rik Jacobs" ;
+    rdfs:label "Rik Jacobs"@en ;
+    ex:birthDate "1999-01-03"^^xsd:date ;
+    ex:email "rik36@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 36" ; ex:postalCode "1036" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:knows p:person038 ;
+    ex:nickname "Rik" .
+
+p:address037 a ex:Address ; ex:street "Dorpsstraat 37" ; ex:postalCode "2037 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/37> .
+
+p:person037 a ex:Person ;
+    ex:name "Tom De Smet" ;
+    rdfs:label "Tom De Smet"@en ;
+    ex:birthDate "1959-11-23"^^xsd:date ;
+    ex:email "tom37@example.org" ;
+    ex:address p:address037 ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 037 000" ] ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 037 111" ] ;
+    ex:knows p:person079 ;
+    ex:favouriteColour "red" .
+
+p:address038 a ex:Address ; ex:street "Dorpsstraat 38" ; ex:postalCode "2038 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/38> .
+
+p:person038 a ex:Person ;
+    ex:name "Rik Goossens" ;
+    rdfs:label "Rik Goossens"@en ;
+    ex:birthDate "2001-09-05"^^xsd:date ;
+    ex:address p:address038 .
+
+p:person039 a ex:Person ;
+    ex:name "Hugo Janssens" ;
+    rdfs:label "Hugo Janssens"@en ;
+    ex:birthDate "1958-11-12"^^xsd:date ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 39" ; ex:postalCode "1039" ; ex:city "Leuven" ; ex:country "BE" ] .
+
+p:address040 a ex:Address ; ex:street "Dorpsstraat 40" ; ex:postalCode "2040 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/40> .
+
+p:person040 a ex:Employee ;
+    ex:name "Inge Peeters" ;
+    rdfs:label "Inge Peeters"@en ;
+    ex:birthDate "1954-12-17"^^xsd:date ;
+    ex:address p:address040 ;
+    ex:contactPoint [ ex:channel ex:Chat ; ex:value "+32 470 040 000" ] ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 040 111" ] ;
+    ex:knows p:person009 ;
+    ex:employeeId "E100040" ;
+    ex:worksFor p:org4 ;
+    ex:startDate "2006-01-01"^^xsd:date ;
+    ex:salary 6271 ;
+    ex:deskNumber "B2.148" .
+
+p:person041 a ex:Employee ;
+    ex:name "Pieter Willems" ;
+    rdfs:label "Pieter Willems"@en ;
+    ex:birthDate "1989-11-21"^^xsd:date ;
+    ex:email "pieter41@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 41" ; ex:postalCode "1041" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Chat ; ex:value "+32 470 041 000" ] ;
+    ex:contactPoint [ ex:channel ex:Chat ; ex:value "+32 470 041 111" ] ;
+    ex:knows p:person072 ;
+    ex:nickname "Pie" ;
+    ex:employeeId "E100041" ;
+    ex:worksFor p:org1 ;
+    ex:startDate "2015-01-01"^^xsd:date ;
+    ex:salary 3315 ;
+    ex:deskNumber "B2.186" .
+
+p:person042 a ex:Employee ;
+    ex:name "Jan De Smet" ;
+    rdfs:label "Jan De Smet"@en ;
+    ex:birthDate "1979-08-25"^^xsd:date ;
+    ex:email "jan42@example.org" ;
+    ex:knows p:person010 ;
+    ex:favouriteColour "blue" ;
+    ex:employeeId "E100042" ;
+    ex:worksFor p:org4 ;
+    ex:startDate "2002-01-01"^^xsd:date ;
+    ex:salary 6181 .
+
+p:person043 a ex:Employee ;
+    ex:name "Greet Jacobs" ;
+    rdfs:label "Greet Jacobs"@en ;
+    ex:birthDate "1955-03-24"^^xsd:date ;
+    ex:email "greet43@example.org" ;
+    ex:employeeId "E100043" ;
+    ex:worksFor p:org4 ;
+    ex:startDate "2003-01-01"^^xsd:date ;
+    ex:salary 4395 ;
+    ex:deskNumber "B2.162" .
+
+p:person044 a ex:Employee ;
+    ex:name "Ann Maes" ;
+    rdfs:label "Ann Maes"@en ;
+    ex:birthDate "1981-11-15"^^xsd:date ;
+    ex:email "ann44@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 44" ; ex:postalCode "1044" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 044 000" ] ;
+    ex:knows p:person042 ;
+    ex:nickname "Ann" ;
+    ex:employeeId "E100044" ;
+    ex:worksFor p:org4 ;
+    ex:startDate "2012-01-01"^^xsd:date ;
+    ex:endDate "2025-06-30"^^xsd:date ;
+    ex:salary 4103 .
+
+p:person045 a ex:Employee ;
+    ex:name "Jan Willems" ;
+    rdfs:label "Jan Willems"@en ;
+    ex:birthDate "1975-07-28"^^xsd:date ;
+    ex:email "jan45@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 45" ; ex:postalCode "1045" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 045 000" ] ;
+    ex:knows p:person006 ;
+    ex:employeeId "E100045" ;
+    ex:worksFor p:org6 ;
+    ex:startDate "2004-01-01"^^xsd:date ;
+    ex:salary 4676 ;
+    ex:deskNumber "B2.140" .
+
+p:person046 a ex:Employee ;
+    ex:name "Luc Goossens" ;
+    rdfs:label "Luc Goossens"@en ;
+    ex:birthDate "2001-11-13"^^xsd:date ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 046 000" ] ;
+    ex:contactPoint [ ex:channel ex:Chat ; ex:value "+32 470 046 111" ] ;
+    ex:knows p:person093 ;
+    ex:employeeId "E100046" ;
+    ex:worksFor p:org2 ;
+    ex:startDate "2004-01-01"^^xsd:date ;
+    ex:salary 4844 ;
+    ex:deskNumber "B2.170" .
+
+p:person047 a ex:Employee ;
+    ex:name "Filip Wouters" ;
+    rdfs:label "Filip Wouters"@en ;
+    ex:birthDate "1968-05-09"^^xsd:date ;
+    ex:email "filip47@example.org" ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 047 000" ] ;
+    ex:nickname "Fil" ;
+    ex:employeeId "E100047" ;
+    ex:worksFor p:org2 ;
+    ex:startDate "2012-01-01"^^xsd:date ;
+    ex:endDate "2025-06-30"^^xsd:date ;
+    ex:salary 3824 ;
+    ex:deskNumber "B2.164" .
+
+p:person048 a ex:Employee ;
+    ex:name "Sara Jacobs" ;
+    rdfs:label "Sara Jacobs"@en ;
+    ex:birthDate "1971-08-14"^^xsd:date ;
+    ex:email "sara48@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 48" ; ex:postalCode "1048" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Chat ; ex:value "+32 470 048 000" ] ;
+    ex:knows p:person030 ;
+    ex:employeeId "E100048" ;
+    ex:worksFor p:org4 ;
+    ex:startDate "2006-01-01"^^xsd:date ;
+    ex:salary 5881 ;
+    ex:deskNumber "B2.195" .
+
+p:person049 a ex:Employee ;
+    ex:name "Greet Goossens" ;
+    rdfs:label "Greet Goossens"@en ;
+    ex:birthDate "1998-01-16"^^xsd:date ;
+    ex:email "greet49@example.org" ;
+    ex:employeeId "E100049" ;
+    ex:worksFor p:org5 ;
+    ex:startDate "2006-01-01"^^xsd:date ;
+    ex:endDate "2025-06-30"^^xsd:date ;
+    ex:salary 4535 ;
+    ex:deskNumber "B2.182" .
+
+p:address050 a ex:Address ; ex:street "Dorpsstraat 50" ; ex:postalCode "2050 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/50> .
+
+p:person050 a ex:Employee ;
+    ex:name "Nico Willems" ;
+    rdfs:label "Nico Willems"@en ;
+    ex:birthDate "1951-03-02"^^xsd:date ;
+    ex:email "nico50@example.org" ;
+    ex:address p:address050 ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 050 000" ] ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 050 111" ] ;
+    ex:knows p:person067 ;
+    ex:employeeId "E100050" ;
+    ex:worksFor p:org4 ;
+    ex:startDate "2007-01-01"^^xsd:date ;
+    ex:salary 4333 ;
+    ex:deskNumber "B2.166" .
+
+p:address051 a ex:Address ; ex:street "Dorpsstraat 51" ; ex:postalCode "2051 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/51> .
+
+p:person051 a ex:Employee ;
+    ex:name "Dirk Wouters" ;
+    rdfs:label "Dirk Wouters"@en ;
+    ex:birthDate "1999-01-01"^^xsd:date ;
+    ex:email "dirk51@example.org" ;
+    ex:address p:address051 ;
+    ex:contactPoint [ ex:channel ex:Chat ; ex:value "+32 470 051 000" ] ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 051 111" ] ;
+    ex:employeeId "E100051" ;
+    ex:worksFor p:org6 ;
+    ex:startDate "2013-01-01"^^xsd:date ;
+    ex:salary 3418 ;
+    ex:deskNumber "B2.138" .
+
+p:person052 a ex:Employee ;
+    ex:name "Tom Jacobs" ;
+    rdfs:label "Tom Jacobs"@en ;
+    ex:birthDate "1964-10-01"^^xsd:date ;
+    ex:email "tom52@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 52" ; ex:postalCode "1052" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Chat ; ex:value "+32 470 052 000" ] ;
+    ex:nickname "Tom" ;
+    ex:employeeId "E100052" ;
+    ex:worksFor p:org5 ;
+    ex:startDate "2017-01-01"^^xsd:date ;
+    ex:salary 5873 .
+
+p:person053 a ex:Employee ;
+    ex:name "Bart Peeters" ;
+    rdfs:label "Bart Peeters"@en ;
+    ex:birthDate "1993-11-14"^^xsd:date ;
+    ex:email "bart53@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 53" ; ex:postalCode "1053" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 053 000" ] ;
+    ex:knows p:person089 ;
+    ex:nickname "Bar" ;
+    ex:employeeId "E100053" ;
+    ex:worksFor p:org3 ;
+    ex:startDate "2012-01-01"^^xsd:date ;
+    ex:endDate "2025-06-30"^^xsd:date ;
+    ex:salary 4892 .
+
+p:person054 a ex:Employee ;
+    ex:name "Chloé Jacobs" ;
+    rdfs:label "Chloé Jacobs"@en ;
+    ex:birthDate "1962-05-25"^^xsd:date ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 54" ; ex:postalCode "1054" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 054 000" ] ;
+    ex:employeeId "E100054" ;
+    ex:worksFor p:org5 ;
+    ex:startDate "2007-01-01"^^xsd:date ;
+    ex:salary 2962 .
+
+p:person055 a ex:Employee ;
+    ex:name "Marie Peeters" ;
+    rdfs:label "Marie Peeters"@en ;
+    ex:birthDate "1988-03-14"^^xsd:date ;
+    ex:email "marie55@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 55" ; ex:postalCode "1055" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 055 000" ] ;
+    ex:contactPoint [ ex:channel ex:Chat ; ex:value "+32 470 055 111" ] ;
+    ex:knows p:person010 ;
+    ex:employeeId "E100055" ;
+    ex:worksFor p:org2 ;
+    ex:startDate "2005-01-01"^^xsd:date ;
+    ex:salary 6799 .
+
+p:person056 a ex:Employee ;
+    ex:name "Jan Goossens" ;
+    rdfs:label "Jan Goossens"@en ;
+    ex:birthDate "1971-08-06"^^xsd:date ;
+    ex:email "jan56@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 56" ; ex:postalCode "1056" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 056 000" ] ;
+    ex:knows p:person097 ;
+    ex:nickname "Jan" ;
+    ex:employeeId "E100056" ;
+    ex:worksFor p:org1 ;
+    ex:startDate "2009-01-01"^^xsd:date ;
+    ex:salary 6042 ;
+    ex:deskNumber "B2.190" .
+
+p:person057 a ex:Employee ;
+    ex:name "Greet Claes" ;
+    rdfs:label "Greet Claes"@en ;
+    ex:birthDate "1978-04-11"^^xsd:date ;
+    ex:email "greet57@example.org" ;
+    ex:nickname "Gre" ;
+    ex:employeeId "E100057" ;
+    ex:worksFor p:org4 ;
+    ex:startDate "2012-01-01"^^xsd:date ;
+    ex:endDate "2025-06-30"^^xsd:date ;
+    ex:salary 2785 ;
+    ex:deskNumber "B2.107" .
+
+p:person058 a ex:Employee ;
+    ex:name "Greet Janssens" ;
+    rdfs:label "Greet Janssens"@en ;
+    ex:birthDate "1971-06-09"^^xsd:date ;
+    ex:email "greet58@example.org" ;
+    ex:knows p:person091 ;
+    ex:employeeId "E100058" ;
+    ex:worksFor p:org3 ;
+    ex:startDate "2009-01-01"^^xsd:date ;
+    ex:endDate "2025-06-30"^^xsd:date ;
+    ex:salary 3035 ;
+    ex:deskNumber "B2.129" .
+
+p:person059 a ex:Employee ;
+    ex:name "Pieter Wouters" ;
+    rdfs:label "Pieter Wouters"@en ;
+    ex:email "pieter59@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 59" ; ex:postalCode "1059" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 059 000" ] ;
+    ex:nickname "Pie" ;
+    ex:employeeId "E100059" ;
+    ex:worksFor p:org1 ;
+    ex:startDate "2009-01-01"^^xsd:date ;
+    ex:salary 3739 ;
+    ex:deskNumber "B2.141" .
+
+p:person060 a ex:Employee ;
+    ex:name "Olga Claes" ;
+    rdfs:label "Olga Claes"@en ;
+    ex:birthDate "1988-02-17"^^xsd:date ;
+    ex:email "olga60@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 60" ; ex:postalCode "1060" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:employeeId "E100060" ;
+    ex:worksFor p:org3 ;
+    ex:startDate "2005-01-01"^^xsd:date ;
+    ex:salary 3361 .
+
+p:person061 a ex:Employee ;
+    ex:name "Vera Janssens" ;
+    rdfs:label "Vera Janssens"@en ;
+    ex:birthDate "1976-08-23"^^xsd:date ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 61" ; ex:postalCode "1061" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Chat ; ex:value "+32 470 061 000" ] ;
+    ex:nickname "Ver" ;
+    ex:employeeId "E100061" ;
+    ex:worksFor p:org3 ;
+    ex:startDate "2003-01-01"^^xsd:date ;
+    ex:salary 4907 ;
+    ex:deskNumber "B2.172" .
+
+p:person062 a ex:Employee ;
+    ex:name "Luc Willems" ;
+    rdfs:label "Luc Willems"@en ;
+    ex:birthDate "1962-08-08"^^xsd:date ;
+    ex:email "luc62@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 62" ; ex:postalCode "1062" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 062 000" ] ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 062 111" ] ;
+    ex:knows p:person032 ;
+    ex:employeeId "E100062" ;
+    ex:worksFor p:org3 ;
+    ex:startDate "2007-01-01"^^xsd:date ;
+    ex:salary 3323 ;
+    ex:deskNumber "B2.104" .
+
+p:person063 a ex:Employee ;
+    ex:name "Ann Wouters" ;
+    rdfs:label "Ann Wouters"@en ;
+    ex:birthDate "1964-08-12"^^xsd:date ;
+    ex:email "ann63@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 63" ; ex:postalCode "1063" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:employeeId "E100063" ;
+    ex:worksFor p:org1 ;
+    ex:startDate "2002-01-01"^^xsd:date ;
+    ex:salary 3956 ;
+    ex:deskNumber "B2.133" .
+
+p:person064 a ex:Employee ;
+    ex:name "Ann Janssens" ;
+    rdfs:label "Ann Janssens"@en ;
+    ex:birthDate "1995-10-12"^^xsd:date ;
+    ex:email "ann64@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 64" ; ex:postalCode "1064" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:nickname "Ann" ;
+    ex:employeeId "E100064" ;
+    ex:worksFor p:org6 ;
+    ex:startDate "2006-01-01"^^xsd:date ;
+    ex:salary 5180 ;
+    ex:deskNumber "B2.147" .
+
+p:address065 a ex:Address ; ex:street "Dorpsstraat 65" ; ex:postalCode "2065 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/65> .
+
+p:person065 a ex:Employee ;
+    ex:name "Vera Willems" ;
+    rdfs:label "Vera Willems"@en ;
+    ex:birthDate "1952-08-18"^^xsd:date ;
+    ex:email "vera65@example.org" ;
+    ex:address p:address065 ;
+    ex:contactPoint [ ex:channel ex:Chat ; ex:value "+32 470 065 000" ] ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 065 111" ] ;
+    ex:nickname "Ver" ;
+    ex:employeeId "E100065" ;
+    ex:worksFor p:org2 ;
+    ex:startDate "2008-01-01"^^xsd:date ;
+    ex:salary 4820 ;
+    ex:deskNumber "B2.153" .
+
+p:person066 a ex:Employee ;
+    ex:name "Jan Dubois" ;
+    rdfs:label "Jan Dubois"@en ;
+    ex:birthDate "1976-07-01"^^xsd:date ;
+    ex:contactPoint [ ex:channel ex:Chat ; ex:value "+32 470 066 000" ] ;
+    ex:knows p:person093 ;
+    ex:employeeId "E100066" ;
+    ex:worksFor p:org1 ;
+    ex:startDate "2013-01-01"^^xsd:date ;
+    ex:salary 5971 ;
+    ex:deskNumber "B2.111" .
+
+p:address067 a ex:Address ; ex:street "Dorpsstraat 67" ; ex:postalCode "2067 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/67> .
+
+p:person067 a ex:Employee ;
+    ex:name "Tom Claes" ;
+    rdfs:label "Tom Claes"@en ;
+    ex:birthDate "1960-03-01"^^xsd:date ;
+    ex:email "tom67@example.org" ;
+    ex:address p:address067 ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 067 000" ] ;
+    ex:knows p:person047 ;
+    ex:employeeId "E100067" ;
+    ex:worksFor p:org4 ;
+    ex:startDate "2011-01-01"^^xsd:date ;
+    ex:salary 6769 ;
+    ex:deskNumber "B2.108" .
+
+p:person068 a ex:Employee ;
+    ex:name "Marie Wouters" ;
+    rdfs:label "Marie Wouters"@en ;
+    ex:birthDate "2000-04-10"^^xsd:date ;
+    ex:email "marie68@example.org" ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 068 000" ] ;
+    ex:knows p:person081 ;
+    ex:employeeId "E100068" ;
+    ex:worksFor p:org1 ;
+    ex:startDate "2019-01-01"^^xsd:date ;
+    ex:salary 3812 ;
+    ex:deskNumber "B2.128" .
+
+p:address069 a ex:Address ; ex:street "Dorpsstraat 69" ; ex:postalCode "2069 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/69> .
+
+p:person069 a ex:Employee ;
+    ex:name "Marie Dubois" ;
+    rdfs:label "Marie Dubois"@en ;
+    ex:birthDate "2003-08-06"^^xsd:date ;
+    ex:email "marie69@example.org" ;
+    ex:address p:address069 ;
+    ex:knows p:person015 ;
+    ex:nickname "Mar" ;
+    ex:employeeId "E100069" ;
+    ex:worksFor p:org5 ;
+    ex:startDate "2006-01-01"^^xsd:date ;
+    ex:endDate "2025-06-30"^^xsd:date ;
+    ex:salary 2812 ;
+    ex:deskNumber "B2.141" .
+
+p:address070 a ex:Address ; ex:street "Dorpsstraat 70" ; ex:postalCode "2070 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/70> .
+
+p:person070 a ex:Employee ;
+    ex:name "Marie Dubois" ;
+    rdfs:label "Marie Dubois"@en ;
+    ex:birthDate "2004-11-25"^^xsd:date ;
+    ex:email "marie70@example.org" ;
+    ex:address p:address070 ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 070 000" ] ;
+    ex:employeeId "E100070" ;
+    ex:worksFor p:org1 ;
+    ex:startDate "2000-01-01"^^xsd:date ;
+    ex:endDate "2025-06-30"^^xsd:date ;
+    ex:salary 6509 ;
+    ex:deskNumber "B2.157" .
+
+p:person071 a ex:Employee ;
+    ex:name "Olga Maes" ;
+    rdfs:label "Olga Maes"@en ;
+    ex:birthDate "1975-02-03"^^xsd:date ;
+    ex:email "olga71@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 71" ; ex:postalCode "1071" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Chat ; ex:value "+32 470 071 000" ] ;
+    ex:knows p:person005 ;
+    ex:nickname "Olg" ;
+    ex:employeeId "E100071" ;
+    ex:worksFor p:org5 ;
+    ex:startDate "2010-01-01"^^xsd:date ;
+    ex:salary 6690 ;
+    ex:deskNumber "B2.196" .
+
+p:person072 a ex:Employee ;
+    ex:name "Marie Maes" ;
+    rdfs:label "Marie Maes"@en ;
+    ex:birthDate "1954-10-24"^^xsd:date ;
+    ex:email "marie72@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 72" ; ex:postalCode "1072" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 072 000" ] ;
+    ex:employeeId "E100072" ;
+    ex:worksFor p:org5 ;
+    ex:startDate "2007-01-01"^^xsd:date ;
+    ex:endDate "2025-06-30"^^xsd:date ;
+    ex:salary 5374 ;
+    ex:deskNumber "B2.132" .
+
+p:person073 a ex:Employee ;
+    ex:name "Katrien Dubois" ;
+    rdfs:label "Katrien Dubois"@en ;
+    ex:birthDate "2002-08-05"^^xsd:date ;
+    ex:email "katrien73@example.org" ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 073 000" ] ;
+    ex:knows p:person078 ;
+    ex:employeeId "E100073" ;
+    ex:worksFor p:org2 ;
+    ex:startDate "2001-01-01"^^xsd:date ;
+    ex:endDate "2025-06-30"^^xsd:date ;
+    ex:salary 5805 ;
+    ex:deskNumber "B2.135" .
+
+p:address074 a ex:Address ; ex:street "Dorpsstraat 74" ; ex:postalCode "2074 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/74> .
+
+p:person074 a ex:Employee ;
+    ex:name "Katrien Goossens" ;
+    rdfs:label "Katrien Goossens"@en ;
+    ex:birthDate "2000-05-04"^^xsd:date ;
+    ex:email "katrien74@example.org" ;
+    ex:address p:address074 ;
+    ex:contactPoint [ ex:channel ex:Chat ; ex:value "+32 470 074 000" ] ;
+    ex:knows p:person088 ;
+    ex:employeeId "E100074" ;
+    ex:worksFor p:org6 ;
+    ex:startDate "2017-01-01"^^xsd:date ;
+    ex:salary 5729 .
+
+p:address075 a ex:Address ; ex:street "Dorpsstraat 75" ; ex:postalCode "2075 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/75> .
+
+p:person075 a ex:Employee ;
+    ex:name "Inge Goossens" ;
+    rdfs:label "Inge Goossens"@en ;
+    ex:email "inge75@example.org" ;
+    ex:address p:address075 ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 075 000" ] ;
+    ex:knows p:person095 ;
+    ex:employeeId "E100075" ;
+    ex:worksFor p:org3 ;
+    ex:startDate "2016-01-01"^^xsd:date ;
+    ex:salary 5061 .
+
+p:person076 a ex:Employee ;
+    ex:name "Bart Jacobs" ;
+    rdfs:label "Bart Jacobs"@en ;
+    ex:birthDate "1989-11-14"^^xsd:date ;
+    ex:email "bart76@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 76" ; ex:postalCode "1076" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 076 000" ] ;
+    ex:nickname "Bar" ;
+    ex:favouriteColour "red" ;
+    ex:employeeId "E100076" ;
+    ex:worksFor p:org6 ;
+    ex:startDate "2011-01-01"^^xsd:date ;
+    ex:salary 6785 ;
+    ex:deskNumber "B2.128" .
+
+p:person077 a ex:Employee ;
+    ex:name "Tom Willems" ;
+    rdfs:label "Tom Willems"@en ;
+    ex:birthDate "1963-06-20"^^xsd:date ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 77" ; ex:postalCode "1077" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:favouriteColour "green" ;
+    ex:employeeId "E100077" ;
+    ex:worksFor p:org4 ;
+    ex:startDate "2008-01-01"^^xsd:date ;
+    ex:salary 4664 .
+
+p:person078 a ex:Employee ;
+    ex:name "Sara Claes" ;
+    rdfs:label "Sara Claes"@en ;
+    ex:birthDate "1987-08-20"^^xsd:date ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 78" ; ex:postalCode "1078" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:knows p:person068 ;
+    ex:nickname "Sar" ;
+    ex:employeeId "E100078" ;
+    ex:worksFor p:org1 ;
+    ex:startDate "2005-01-01"^^xsd:date ;
+    ex:endDate "2025-06-30"^^xsd:date ;
+    ex:salary 3359 ;
+    ex:deskNumber "B2.170" .
+
+p:address079 a ex:Address ; ex:street "Dorpsstraat 79" ; ex:postalCode "2079 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/79> .
+
+p:person079 a ex:Employee ;
+    ex:name "Greet Maes" ;
+    rdfs:label "Greet Maes"@en ;
+    ex:birthDate "1983-10-21"^^xsd:date ;
+    ex:email "greet79@example.org" ;
+    ex:address p:address079 ;
+    ex:knows p:person008 ;
+    ex:nickname "Gre" ;
+    ex:favouriteColour "red" ;
+    ex:employeeId "E100079" ;
+    ex:worksFor p:org6 ;
+    ex:startDate "2015-01-01"^^xsd:date ;
+    ex:salary 2552 ;
+    ex:deskNumber "B2.155" .
+
+p:address080 a ex:Address ; ex:street "Dorpsstraat 80" ; ex:postalCode "2080 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/80> .
+
+p:person080 a ex:Employee ;
+    ex:name "Olga Janssens" ;
+    rdfs:label "Olga Janssens"@en ;
+    ex:birthDate "1978-03-08"^^xsd:date ;
+    ex:address p:address080 ;
+    ex:knows p:person095 ;
+    ex:employeeId "E100080" ;
+    ex:worksFor p:org6 ;
+    ex:startDate "2008-01-01"^^xsd:date ;
+    ex:salary 4678 ;
+    ex:deskNumber "B2.186" .
+
+p:person081 a ex:Employee ;
+    ex:name "Rik Willems" ;
+    rdfs:label "Rik Willems"@en ;
+    ex:birthDate "1963-02-17"^^xsd:date ;
+    ex:email "rik81@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 81" ; ex:postalCode "1081" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 081 000" ] ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 081 111" ] ;
+    ex:nickname "Rik" ;
+    ex:employeeId "E100081" ;
+    ex:worksFor p:org4 ;
+    ex:startDate "2010-01-01"^^xsd:date ;
+    ex:salary 5608 .
+
+p:address082 a ex:Address ; ex:street "Dorpsstraat 82" ; ex:postalCode "2082 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/82> .
+
+p:person082 a ex:Employee ;
+    ex:name "Sara Wouters" ;
+    rdfs:label "Sara Wouters"@en ;
+    ex:birthDate "1983-12-01"^^xsd:date ;
+    ex:address p:address082 ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 082 000" ] ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 082 111" ] ;
+    ex:knows p:person074 ;
+    ex:nickname "Sar" ;
+    ex:employeeId "E100082" ;
+    ex:worksFor p:org6 ;
+    ex:startDate "2004-01-01"^^xsd:date ;
+    ex:endDate "2025-06-30"^^xsd:date ;
+    ex:salary 3416 ;
+    ex:deskNumber "B2.120" .
+
+p:address083 a ex:Address ; ex:street "Dorpsstraat 83" ; ex:postalCode "2083 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/83> .
+
+p:person083 a ex:Employee ;
+    ex:name "Els Peeters" ;
+    rdfs:label "Els Peeters"@en ;
+    ex:birthDate "1958-12-21"^^xsd:date ;
+    ex:email "els83@example.org" ;
+    ex:address p:address083 ;
+    ex:employeeId "E100083" ;
+    ex:worksFor p:org3 ;
+    ex:startDate "2017-01-01"^^xsd:date ;
+    ex:salary 3040 .
+
+p:address084 a ex:Address ; ex:street "Dorpsstraat 84" ; ex:postalCode "2084 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/84> .
+
+p:person084 a ex:Employee ;
+    ex:name "Marie Janssens" ;
+    rdfs:label "Marie Janssens"@en ;
+    ex:birthDate "1963-02-02"^^xsd:date ;
+    ex:email "marie84@example.org" ;
+    ex:address p:address084 ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 084 000" ] ;
+    ex:contactPoint [ ex:channel ex:Chat ; ex:value "+32 470 084 111" ] ;
+    ex:employeeId "E100084" ;
+    ex:worksFor p:org6 ;
+    ex:startDate "2020-01-01"^^xsd:date ;
+    ex:salary 5114 ;
+    ex:deskNumber "B2.133" .
+
+p:address085 a ex:Address ; ex:street "Dorpsstraat 85" ; ex:postalCode "2085 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/85> .
+
+p:person085 a ex:Employee ;
+    ex:name "Luc Willems" ;
+    rdfs:label "Luc Willems"@en ;
+    ex:email "luc85@example.org" ;
+    ex:address p:address085 ;
+    ex:contactPoint [ ex:channel ex:Chat ; ex:value "+32 470 085 000" ] ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 085 111" ] ;
+    ex:favouriteColour "blue" ;
+    ex:employeeId "E100085" ;
+    ex:worksFor p:org1 ;
+    ex:startDate "2000-01-01"^^xsd:date ;
+    ex:salary 3305 ;
+    ex:deskNumber "B2.190" .
+
+p:person086 a ex:Employee ;
+    ex:name "Sara Dubois" ;
+    rdfs:label "Sara Dubois"@en ;
+    ex:birthDate "2002-02-19"^^xsd:date ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 86" ; ex:postalCode "1086" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:knows p:person096 ;
+    ex:favouriteColour "blue" ;
+    ex:employeeId "E100086" ;
+    ex:worksFor p:org1 ;
+    ex:startDate "2003-01-01"^^xsd:date ;
+    ex:salary 4011 .
+
+p:person087 a ex:Employee ;
+    ex:name "Luc De Smet" ;
+    rdfs:label "Luc De Smet"@en ;
+    ex:birthDate "1960-05-27"^^xsd:date ;
+    ex:email "luc87@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 87" ; ex:postalCode "1087" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:employeeId "E100087" ;
+    ex:worksFor p:org5 ;
+    ex:startDate "2017-01-01"^^xsd:date ;
+    ex:salary 5175 ;
+    ex:deskNumber "B2.151" .
+
+p:address088 a ex:Address ; ex:street "Dorpsstraat 88" ; ex:postalCode "2088 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/88> .
+
+p:person088 a ex:Employee ;
+    ex:name "Chloé Goossens" ;
+    rdfs:label "Chloé Goossens"@en ;
+    ex:birthDate "1951-06-07"^^xsd:date ;
+    ex:email "chloé88@example.org" ;
+    ex:address p:address088 ;
+    ex:knows p:person080 ;
+    ex:nickname "Chl" ;
+    ex:employeeId "E100088" ;
+    ex:worksFor p:org4 ;
+    ex:startDate "2017-01-01"^^xsd:date ;
+    ex:salary 2777 ;
+    ex:deskNumber "B2.141" .
+
+p:person089 a ex:Employee ;
+    ex:name "Els Wouters" ;
+    rdfs:label "Els Wouters"@en ;
+    ex:birthDate "1997-06-06"^^xsd:date ;
+    ex:email "els89@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 89" ; ex:postalCode "1089" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:knows p:person059 ;
+    ex:employeeId "E100089" ;
+    ex:worksFor p:org5 ;
+    ex:startDate "2016-01-01"^^xsd:date ;
+    ex:endDate "2025-06-30"^^xsd:date ;
+    ex:salary 4969 .
+
+p:person090 a ex:Employee ;
+    ex:name "Els Maes" ;
+    rdfs:label "Els Maes"@en ;
+    ex:email "els90@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 90" ; ex:postalCode "1090" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:knows p:person024 ;
+    ex:nickname "Els" ;
+    ex:employeeId "E100090" ;
+    ex:worksFor p:org5 ;
+    ex:startDate "2003-01-01"^^xsd:date ;
+    ex:endDate "2025-06-30"^^xsd:date ;
+    ex:salary 3332 ;
+    ex:deskNumber "B2.119" .
+
+p:address091 a ex:Address ; ex:street "Dorpsstraat 91" ; ex:postalCode "2091 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/91> .
+
+p:person091 a ex:Employee ;
+    ex:name "Jan Willems" ;
+    rdfs:label "Jan Willems"@en ;
+    ex:birthDate "1962-02-21"^^xsd:date ;
+    ex:address p:address091 ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 091 000" ] ;
+    ex:knows p:person055 ;
+    ex:employeeId "E100091" ;
+    ex:worksFor p:org2 ;
+    ex:startDate "2020-01-01"^^xsd:date ;
+    ex:salary 2681 ;
+    ex:deskNumber "B2.177" .
+
+p:person092 a ex:Employee ;
+    ex:name "Marie Peeters" ;
+    rdfs:label "Marie Peeters"@en ;
+    ex:birthDate "2004-07-23"^^xsd:date ;
+    ex:email "marie92@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 92" ; ex:postalCode "1092" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:employeeId "E100092" ;
+    ex:worksFor p:org6 ;
+    ex:startDate "2020-01-01"^^xsd:date ;
+    ex:salary 4372 ;
+    ex:deskNumber "B2.182" .
+
+p:person093 a ex:Employee ;
+    ex:name "Olga Goossens" ;
+    rdfs:label "Olga Goossens"@en ;
+    ex:birthDate "1990-12-04"^^xsd:date ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 93" ; ex:postalCode "1093" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Chat ; ex:value "+32 470 093 000" ] ;
+    ex:contactPoint [ ex:channel ex:Phone ; ex:value "+32 470 093 111" ] ;
+    ex:knows p:person054 ;
+    ex:favouriteColour "blue" ;
+    ex:employeeId "E100093" ;
+    ex:worksFor p:org1 ;
+    ex:startDate "2016-01-01"^^xsd:date ;
+    ex:salary 3999 .
+
+p:address094 a ex:Address ; ex:street "Dorpsstraat 94" ; ex:postalCode "2094 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/94> .
+
+p:person094 a ex:Employee ;
+    ex:name "Ann Goossens" ;
+    rdfs:label "Ann Goossens"@en ;
+    ex:birthDate "1956-01-09"^^xsd:date ;
+    ex:email "ann94@example.org" ;
+    ex:address p:address094 ;
+    ex:knows p:person012 ;
+    ex:employeeId "E100094" ;
+    ex:worksFor p:org3 ;
+    ex:startDate "2006-01-01"^^xsd:date ;
+    ex:salary 6695 ;
+    ex:deskNumber "B2.147" .
+
+p:address095 a ex:Address ; ex:street "Dorpsstraat 95" ; ex:postalCode "2095 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/95> .
+
+p:person095 a ex:Employee ;
+    ex:name "Katrien Goossens" ;
+    rdfs:label "Katrien Goossens"@en ;
+    ex:birthDate "1979-04-22"^^xsd:date ;
+    ex:email "katrien95@example.org" ;
+    ex:address p:address095 ;
+    ex:contactPoint [ ex:channel ex:Chat ; ex:value "+32 470 095 000" ] ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 095 111" ] ;
+    ex:nickname "Kat" ;
+    ex:employeeId "E100095" ;
+    ex:worksFor p:org5 ;
+    ex:startDate "2001-01-01"^^xsd:date ;
+    ex:endDate "2025-06-30"^^xsd:date ;
+    ex:salary 5929 .
+
+p:person096 a ex:Employee ;
+    ex:name "Luc Dubois" ;
+    rdfs:label "Luc Dubois"@en ;
+    ex:birthDate "1964-05-24"^^xsd:date ;
+    ex:email "luc96@example.org" ;
+    ex:employeeId "E100096" ;
+    ex:worksFor p:org6 ;
+    ex:startDate "2005-01-01"^^xsd:date ;
+    ex:endDate "2025-06-30"^^xsd:date ;
+    ex:salary 3064 .
+
+p:address097 a ex:Address ; ex:street "Dorpsstraat 97" ; ex:postalCode "2097 AB" ; ex:city "Breda" ; ex:country "NL" ; ex:geo <http://example.org/geo/97> .
+
+p:person097 a ex:Employee ;
+    ex:name "Greet Wouters" ;
+    rdfs:label "Greet Wouters"@en ;
+    ex:birthDate "1996-04-27"^^xsd:date ;
+    ex:address p:address097 ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 097 000" ] ;
+    ex:employeeId "E100097" ;
+    ex:worksFor p:org6 ;
+    ex:startDate "2015-01-01"^^xsd:date ;
+    ex:salary 4387 ;
+    ex:deskNumber "B2.148" .
+
+p:person098 a ex:Employee ;
+    ex:name "Inge Goossens" ;
+    rdfs:label "Inge Goossens"@en ;
+    ex:birthDate "1980-01-26"^^xsd:date ;
+    ex:email "inge98@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 98" ; ex:postalCode "1098" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 098 000" ] ;
+    ex:knows p:person054 ;
+    ex:favouriteColour "blue" ;
+    ex:employeeId "E100098" ;
+    ex:worksFor p:org6 ;
+    ex:startDate "2004-01-01"^^xsd:date ;
+    ex:salary 5654 ;
+    ex:deskNumber "B2.172" .
+
+p:person099 a ex:Employee ;
+    ex:name "Els De Smet" ;
+    rdfs:label "Els De Smet"@en ;
+    ex:birthDate "1990-10-01"^^xsd:date ;
+    ex:email "els99@example.org" ;
+    ex:address [ a ex:Address ; ex:street "Kerkstraat 99" ; ex:postalCode "1099" ; ex:city "Leuven" ; ex:country "BE" ] ;
+    ex:contactPoint [ ex:channel ex:Email ; ex:value "+32 470 099 000" ] ;
+    ex:employeeId "E100099" ;
+    ex:worksFor p:org3 ;
+    ex:startDate "2005-01-01"^^xsd:date ;
+    ex:salary 5338 .
+
+p:org1 a ex:Organisation ; ex:legalName "Organisation 1 NV" ; ex:sector ex:Public ; ex:website <https://org1.example> ; rdfs:label "Organisation 1"@en .
+
+p:org2 a ex:Organisation ; ex:legalName "Organisation 2 NV" ; ex:sector ex:Private ; ex:website <https://org2.example> ; rdfs:label "Organisation 2"@en .
+
+p:org3 a ex:Organisation ; ex:legalName "Organisation 3 NV" ; ex:sector ex:NonProfit ; ex:website <https://org3.example> ; rdfs:label "Organisation 3"@en .
+
+p:org4 a ex:Organisation ; ex:legalName "Organisation 4 NV" ; ex:sector ex:Public ; ex:website <https://org4.example> ; rdfs:label "Organisation 4"@en .
+
+p:org5 a ex:Organisation ; ex:legalName "Organisation 5 NV" ; ex:sector ex:NonProfit ; ex:website <https://org5.example> ; rdfs:label "Organisation 5"@en .
+
+p:org6 a ex:Organisation ; ex:legalName "Organisation 6 NV" ; ex:sector ex:NonProfit ; ex:website <https://org6.example> ; rdfs:label "Organisation 6"@en .
+
+p:org7 a ex:Organisation ; ex:legalName "Organisation 7 NV" ; ex:sector ex:NonProfit ; ex:website <https://org7.example> ; rdfs:label "Organisation 7"@en .
+
+p:vehicle0 a ex:Vehicle ; ex:plate "1-ABC-000" ; ex:registeredOn "2019-01-15"^^xsd:date ; ex:colour "white" ; rdfs:label "Van 0" .
+
+p:vehicle1 a ex:Vehicle ; ex:plate "1-ABC-001" ; ex:registeredOn "2019-02-15"^^xsd:date ; ex:colour "white" ; rdfs:label "Van 1" .
+
+p:vehicle2 a ex:Vehicle ; ex:plate "1-ABC-002" ; ex:registeredOn "2019-03-15"^^xsd:date ; ex:colour "white" ; rdfs:label "Van 2" .
+
+p:vehicle3 a ex:Vehicle ; ex:plate "1-ABC-003" ; ex:registeredOn "2019-04-15"^^xsd:date ; ex:colour "white" ; rdfs:label "Van 3" .
+
+p:vehicle4 a ex:Vehicle ; ex:plate "1-ABC-004" ; ex:registeredOn "2019-05-15"^^xsd:date ; ex:colour "white" ; rdfs:label "Van 4" .
+
+p:vehicle5 a ex:Vehicle ; ex:plate "1-ABC-005" ; ex:registeredOn "2019-06-15"^^xsd:date ; ex:colour "white" ; rdfs:label "Van 5" .
+
+p:car0 a ex:Car ; ex:plate "2-CAR-000" ; ex:registeredOn "2021-01-01"^^xsd:date ; ex:trunkVolume 300 .
+
+p:car1 a ex:Car ; ex:plate "2-CAR-001" ; ex:registeredOn "2021-02-01"^^xsd:date ; ex:trunkVolume 310 .
+
+p:car2 a ex:Car ; ex:plate "2-CAR-002" ; ex:registeredOn "2021-03-01"^^xsd:date ; ex:trunkVolume 320 .
+
+p:car3 a ex:Car ; ex:plate "2-CAR-003" ; ex:registeredOn "2021-04-01"^^xsd:date ; ex:trunkVolume 330 .
+
+p:car4 a ex:Car ; ex:plate "2-CAR-004" ; ex:registeredOn "2021-05-01"^^xsd:date ; ex:trunkVolume 340 .
+
+p:car5 a ex:Car ; ex:plate "2-CAR-005" ; ex:registeredOn "2021-06-01"^^xsd:date ; ex:trunkVolume 350 .
+
+p:car6 a ex:Car ; ex:plate "2-CAR-006" ; ex:registeredOn "2021-07-01"^^xsd:date ; ex:trunkVolume 360 .
+
+p:car7 a ex:Car ; ex:plate "2-CAR-007" ; ex:registeredOn "2021-08-01"^^xsd:date ; ex:trunkVolume 370 .
+
+p:car8 a ex:Car ; ex:plate "2-CAR-008" ; ex:registeredOn "2021-09-01"^^xsd:date ; ex:trunkVolume 380 .
+
+p:car9 a ex:Car ; ex:plate "2-CAR-009" ; ex:registeredOn "2021-01-01"^^xsd:date ; ex:trunkVolume 390 .
+
+p:car10 a ex:Car ; ex:plate "2-CAR-010" ; ex:registeredOn "2021-02-01"^^xsd:date ; ex:trunkVolume 400 .
+
+p:car11 a ex:Car ; ex:plate "2-CAR-011" ; ex:registeredOn "2021-03-01"^^xsd:date ; ex:trunkVolume 410 .
+
+p:invoice0 a ex:Invoice ; ex:invoiceNumber "2026-0000" ; ex:amount 100.50 ; ex:issuedTo p:org1 ; ex:issueDate "2026-01-10"^^xsd:date .
+
+p:invoice1 a ex:Invoice ; ex:invoiceNumber "2026-0001" ; ex:amount 107.50 ; ex:issuedTo p:org2 ; ex:issueDate "2026-02-10"^^xsd:date .
+
+p:invoice2 a ex:Invoice ; ex:invoiceNumber "2026-0002" ; ex:amount 114.50 ; ex:issuedTo p:org3 ; ex:issueDate "2026-03-10"^^xsd:date .
+
+p:invoice3 a ex:Invoice ; ex:invoiceNumber "2026-0003" ; ex:amount 121.50 ; ex:issuedTo p:org4 ; ex:issueDate "2026-04-10"^^xsd:date .
+
+p:invoice4 a ex:Invoice ; ex:invoiceNumber "2026-0004" ; ex:amount 128.50 ; ex:issuedTo p:org5 ; ex:issueDate "2026-05-10"^^xsd:date .
+
+p:invoice5 a ex:Invoice ; ex:invoiceNumber "2026-0005" ; ex:amount 135.50 ; ex:issuedTo p:org6 ; ex:issueDate "2026-06-10"^^xsd:date .
+
+p:invoice6 a ex:Invoice ; ex:invoiceNumber "2026-0006" ; ex:amount 142.50 ; ex:issuedTo p:org7 ; ex:issueDate "2026-07-10"^^xsd:date .
+
+p:invoice7 a ex:Invoice ; ex:invoiceNumber "2026-0007" ; ex:amount 149.50 ; ex:issuedTo p:org1 ; ex:issueDate "2026-08-10"^^xsd:date .
+
+p:invoice8 a ex:Invoice ; ex:invoiceNumber "2026-0008" ; ex:amount 156.50 ; ex:issuedTo p:org2 ; ex:issueDate "2026-09-10"^^xsd:date .
+
+p:invoice9 a ex:Invoice ; ex:invoiceNumber "2026-0009" ; ex:amount 163.50 ; ex:issuedTo p:org3 ; ex:issueDate "2026-01-10"^^xsd:date .
+
+p:invoice10 a ex:Invoice ; ex:invoiceNumber "2026-0010" ; ex:amount 170.50 ; ex:issuedTo p:org4 ; ex:issueDate "2026-02-10"^^xsd:date .
+
+p:invoice11 a ex:Invoice ; ex:invoiceNumber "2026-0011" ; ex:amount 177.50 ; ex:issuedTo p:org5 ; ex:issueDate "2026-03-10"^^xsd:date .
+
+p:invoice12 a ex:Invoice ; ex:invoiceNumber "2026-0012" ; ex:amount 184.50 ; ex:issuedTo p:org6 ; ex:issueDate "2026-04-10"^^xsd:date .
+
+p:invoice13 a ex:Invoice ; ex:invoiceNumber "2026-0013" ; ex:amount 191.50 ; ex:issuedTo p:org7 ; ex:issueDate "2026-05-10"^^xsd:date .
+
+p:invoice14 a ex:Invoice ; ex:invoiceNumber "2026-0014" ; ex:amount 198.50 ; ex:issuedTo p:org1 ; ex:issueDate "2026-06-10"^^xsd:date .
+
+p:invoice15 a ex:Invoice ; ex:invoiceNumber "2026-0015" ; ex:amount 205.50 ; ex:issuedTo p:org2 ; ex:issueDate "2026-07-10"^^xsd:date .
+
+p:invoice16 a ex:Invoice ; ex:invoiceNumber "2026-0016" ; ex:amount 212.50 ; ex:issuedTo p:org3 ; ex:issueDate "2026-08-10"^^xsd:date .
+
+p:invoice17 a ex:Invoice ; ex:invoiceNumber "2026-0017" ; ex:amount 219.50 ; ex:issuedTo p:org4 ; ex:issueDate "2026-09-10"^^xsd:date .
+
+p:invoice18 a ex:Invoice ; ex:invoiceNumber "2026-0018" ; ex:amount 226.50 ; ex:issuedTo p:org5 ; ex:issueDate "2026-01-10"^^xsd:date .
+
+p:invoice19 a ex:Invoice ; ex:invoiceNumber "2026-0019" ; ex:amount 233.50 ; ex:issuedTo p:org6 ; ex:issueDate "2026-02-10"^^xsd:date .
+
+<http://example.org/codes/BE> ex:code "BE" ; rdfs:label "Belgium"@en .
+
+<http://example.org/codes/NL> ex:code "NL" ; rdfs:label "Netherlands"@en .

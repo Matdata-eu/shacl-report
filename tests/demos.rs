@@ -79,3 +79,19 @@ fn pyshacl_demo_matches_the_built_in_validation() {
     // Every anonymous property shape in pyshacl's report is matched back to the shapes.
     assert!(theirs.results.iter().all(|x| x.constraint.is_some()));
 }
+
+#[test]
+fn coverage_demo_has_gaps_of_every_kind() {
+    let r = load(None, "coverage-shapes.ttl", "coverage-data.ttl");
+    let c = r.coverage.expect("coverage needs data and shapes");
+    assert!(c.resource_percent() < 100.0 && c.triple_percent() < 100.0);
+    assert!(
+        c.classes
+            .iter()
+            .any(|x| x.kind == "class" && x.targeted + x.reached == 0)
+    );
+    assert!(c.classes.iter().any(|x| x.kind == "blank"));
+    assert_eq!(c.hints.len(), 1);
+    assert!(c.unused.iter().any(|u| u.kind == "no-focus"));
+    assert!(c.unused.iter().any(|u| u.suggestion.is_some()));
+}
