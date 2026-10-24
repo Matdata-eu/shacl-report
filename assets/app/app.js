@@ -85,6 +85,7 @@
     shapeKeysLabel: "",
     tab: "results",
     explorer: null,
+    coverage: null,
     editor: null,
   };
 
@@ -108,6 +109,10 @@
     tabs: $("tabs"), resultsView: $("results-view"), shapesView: $("shapes-view"), sparqlView: $("sparql-view"), explore: $("explore"),
     shapeList: $("shape-list"), shapeDetail: $("shape-detail"), shapeSearch2: $("shape-search-2"), shapeCount: $("shape-count"),
     shapesBack: $("shapes-back"),
+    coverageView: $("coverage-view"), coverageContent: $("coverage-content"), coverageOptions: $("coverage-options"),
+    coverageToggleOptions: $("coverage-toggle-options"), coverageGaps: $("coverage-gaps"), coverageAnnot: $("coverage-annotations"),
+    coverageAnnotCount: $("coverage-annotation-count"), coverageIgnored: $("coverage-ignored"), coverageCats: $("coverage-cats"),
+    coverageDrawer: $("coverage-drawer"), coverageDrawerBody: $("coverage-drawer-body"), coverageClose: $("coverage-close"),
   };
 
   // ---------- text helpers ----------
@@ -1001,6 +1006,7 @@
     els.tabs.querySelector('[data-tab="results"]').classList.toggle("hidden", !hasReport);
     els.tabs.querySelector('[data-tab="shapes"]').classList.toggle("hidden", !hasShapes);
     els.tabs.querySelector('[data-tab="sparql"]').classList.toggle("hidden", false);
+    els.tabs.querySelector('[data-tab="coverage"]').classList.toggle("hidden", !report.coverage);
     els.exportMenu.querySelector('[data-export="csv"]').classList.toggle("hidden", !hasReport);
     els.exportMenu.querySelector('[data-export="ttl"]').classList.toggle("hidden", state.standalone || !report.validation);
     if (!state.editor) {
@@ -1049,6 +1055,29 @@
       }
       state.explorer.setModel(report.shapes, state.rows, hasReport);
     }
+    if (report.coverage) {
+      if (!state.coverage) {
+        state.coverage = window.ShaclCoverage.create({
+          els, esc, iriHtml, iriText, termHtml, tokensToHtml, tokensToText, plural,
+          prefixes: () => state.report.prefixes || [],
+          copy: copyText,
+          shapeLabel: (key) => {
+            const s = state.report.shapes && state.report.shapes.shapes.find((x) => x.key === key);
+            return s ? s.label : key;
+          },
+          showShape: (key) => {
+            if (state.explorer && state.explorer.showKey(key)) switchTab("shapes");
+          },
+          runQuery: (name, query) => {
+            switchTab("sparql");
+            state.editor.open(name, query);
+          },
+        });
+      }
+      state.coverage.setModel(report);
+    } else if (report.coverage_error) {
+      toast(`Coverage could not be computed: ${report.coverage_error}`);
+    }
     if (hasReport) update();
     switchTab(hasReport ? "results" : "shapes");
   }
@@ -1059,6 +1088,7 @@
     els.resultsView.classList.toggle("hidden", tab !== "results");
     els.shapesView.classList.toggle("hidden", tab !== "shapes");
     els.sparqlView.classList.toggle("hidden", tab !== "sparql");
+    els.coverageView.classList.toggle("hidden", tab !== "coverage");
     for (const b of els.tabs.querySelectorAll("button")) {
       const on = b.dataset.tab === tab;
       b.classList.toggle("active", on);
@@ -1219,6 +1249,7 @@
         else if (state.turtle && state.turtle.isOpen) state.turtle.close();
         else if (els.filters.classList.contains("open")) openFilters(false);
         else if (state.selected) closeDrawer();
+        else if (state.tab === "coverage" && state.coverage && state.coverage.closeDrawer()) return;
         else if (typing) document.activeElement.blur();
         return;
       }
@@ -1226,6 +1257,7 @@
       if (e.key === "/") {
         e.preventDefault();
         if (state.tab === "shapes") els.shapeSearch2.focus();
+        else if (state.tab === "coverage") { const c = document.getElementById("cov-search"); if (c) c.focus(); }
         else if (state.tab === "results") els.search.focus();
       } else if (state.selected && (e.key === "j" || e.key === "ArrowDown")) {
         e.preventDefault();

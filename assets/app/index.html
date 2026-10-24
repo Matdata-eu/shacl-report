@@ -31,6 +31,9 @@
         <button data-tab="shapes" role="tab" aria-selected="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5" /><circle cx="16.5" cy="16.5" r="3.5" /><path d="M16.5 4l3.5 6h-7z" /></svg><span>Shapes</span>
         </button>
+        <button data-tab="coverage" role="tab" aria-selected="false" class="hidden">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" /><path d="M12 4a8 8 0 018 8h-8z" /></svg><span>Coverage</span>
+        </button>
         <button data-tab="sparql" role="tab" aria-selected="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7l-5 5 5 5M15 7l5 5-5 5" /></svg><span>SPARQL</span>
         </button>
@@ -173,6 +176,38 @@
       </main>
     </div>
 
+    <div id="coverage-view" class="layout coverage-view hidden">
+      <aside id="coverage-options" class="cov-options" aria-label="Coverage options">
+        <button id="coverage-toggle-options" class="link-btn only-mobile cov-options-toggle" type="button">Options and rule categories</button>
+        <div class="cov-options-body">
+          <section class="filter-section">
+            <h3>Show</h3>
+            <label class="cov-switch"><input id="coverage-gaps" type="checkbox" /><span class="switch" aria-hidden="true"></span><span>Only show gaps</span></label>
+            <label class="cov-switch"><input id="coverage-annotations" type="checkbox" /><span class="switch" aria-hidden="true"></span><span>Ignore annotations<span class="cov-note">rdfs:label, rdfs:comment, skos:…, dct:… (<span id="coverage-annotation-count"></span> values)</span></span></label>
+          </section>
+          <section class="filter-section">
+            <h3>Always left out</h3>
+            <ul id="coverage-ignored" class="cov-ignored"></ul>
+            <p class="cov-note">Leave more out with <code>--coverage-ignore</code> on the command line.</p>
+          </section>
+          <section class="filter-section">
+            <h3>Rule categories</h3>
+            <ol id="coverage-cats" class="cov-cats"></ol>
+          </section>
+        </div>
+      </aside>
+      <main id="coverage-content" class="content cov-content"></main>
+      <aside id="coverage-drawer" class="drawer cov-drawer" aria-label="Coverage details" aria-hidden="true">
+        <div class="drawer-head">
+          <strong class="cov-drawer-title">Coverage details</strong>
+          <button id="coverage-close" class="icon-btn" aria-label="Close details" title="Close (Esc)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+          </button>
+        </div>
+        <div id="coverage-drawer-body" class="drawer-body"></div>
+      </aside>
+    </div>
+
     <div id="sparql-view" class="sparql-view hidden">
       <form id="endpoint-form" class="endpoint-bar">
         <label class="endpoint-field">
@@ -300,6 +335,7 @@
     <script src="/assets/app/sparql.js"></script>
     <script src="/assets/app/turtle-view.js"></script>
     <script src="/assets/app/shapes.js"></script>
+    <script src="/assets/app/coverage.js"></script>
     <!--REPORT-DATA-->
     <script src="/assets/app/app.js"></script>
   </body>
