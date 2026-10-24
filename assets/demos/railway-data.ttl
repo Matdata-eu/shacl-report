@@ -1,0 +1,227 @@
+# Demo: a small piece of a railway network, checked by railway-shapes.ttl.
+# The places are real; the identifiers, lengths and track data are made up.
+
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rail: <https://example.org/rail#> .
+
+# ---------- operational points ----------
+
+rail:op-brussels-south a rail:OperationalPoint ;
+    rail:uopid "BE00101" ;
+    rail:name "Brussel-Zuid / Bruxelles-Midi" ;
+    rail:country "BE" ;
+    rail:opType rail:Station ;
+    rail:location [ rail:lat 50.8357 ; rail:long 4.3363 ] .
+
+rail:op-brussels-central a rail:OperationalPoint ;
+    rail:uopid "BE00102" ;
+    rail:name "Brussel-Centraal / Bruxelles-Central" ;
+    rail:country "BE" ;
+    rail:opType rail:Station ;
+    rail:location [ rail:lat 50.8455 ; rail:long 4.3571 ] .
+
+rail:op-brussels-north a rail:OperationalPoint ;
+    rail:uopid "BE00103" ;
+    rail:name "Brussel-Noord / Bruxelles-Nord" ;
+    rail:country "BE" ;
+    rail:opType rail:Station ;
+    rail:location [ rail:lat 50.8605 ; rail:long 4.3617 ] .
+
+rail:op-mechelen a rail:OperationalPoint ;
+    rail:uopid "BE00210" ;
+    rail:name "Mechelen" ;
+    rail:country "BE" ;
+    rail:opType rail:Station ;
+    rail:location [ rail:lat 51.0177 ; rail:long 4.4826 ] .
+
+rail:op-antwerp-central a rail:OperationalPoint ;
+    rail:uopid "BE00210" ;
+    rail:name "Antwerpen-Centraal" ;
+    rail:country "BE" ;
+    rail:opType rail:Station ;
+    rail:location [ rail:lat 51.2172 ; rail:long 4.4211 ] .
+
+rail:op-leuven a rail:OperationalPoint ;
+    rail:uopid "BE0350" ;
+    rail:name "Leuven" ;
+    rail:country "BE" ;
+    rail:opType rail:Station ;
+    rail:location [ rail:lat 50.8812 ; rail:long 4.7157 ] .
+
+rail:op-schaerbeek a rail:OperationalPoint ;
+    rail:uopid "BE00104" ;
+    rail:name "Schaarbeek / Schaerbeek" ;
+    rail:country "BE" ;
+    rail:opType rail:Junction ;
+    rail:location [ rail:lat 50.8786 ; rail:long 4.3791 ] .
+
+rail:op-ghent a rail:OperationalPoint ;
+    rail:uopid "BE00401" ;
+    rail:name "Gent-Sint-Pieters" ;
+    rail:country "BE" ;
+    rail:opType rail:Station ;
+    rail:location [ rail:lat 51.0356 ; rail:long 3.7108 ] .
+
+rail:op-liege a rail:OperationalPoint ;
+    rail:uopid "BE00601" ;
+    rail:name "Liège-Guillemins" ;
+    rail:country "BE" ;
+    rail:opType rail:Stop ;
+    rail:location [ rail:lat 50.6245 ; rail:long 5.5667 ] .
+
+rail:op-namur a rail:OperationalPoint ;
+    rail:uopid "BE00701" ;
+    rail:name "Namur" ;
+    rail:country "BE" ;
+    rail:opType rail:Station ;
+    rail:location [ rail:lat 5.0355 ; rail:long 50.4685 ] .
+
+rail:op-roosendaal a rail:OperationalPoint ;
+    rail:uopid "NL00102" ;
+    rail:name "Roosendaal" ;
+    rail:country "NL" ;
+    rail:opType rail:Station ;
+    rail:location [ rail:lat 51.5406 ; rail:long 4.4567 ] .
+
+rail:op-essen-border a rail:OperationalPoint ;
+    rail:uopid "EU00001" ;
+    rail:name "Essen grens / frontière" ;
+    rail:country "EU" ;
+    rail:opType rail:BorderPoint .
+
+rail:op-luxembourg a rail:OperationalPoint ;
+    rail:uopid "LU00001" ;
+    rail:name "Luxembourg", "Lëtzebuerg" ;
+    rail:country "LU" ;
+    rail:location [ rail:lat "49.6000" ; rail:long "6.1336" ] .
+
+# ---------- sections of line ----------
+
+rail:sol-south-central a rail:SectionOfLine ;
+    rail:start rail:op-brussels-south ;
+    rail:end rail:op-brussels-central ;
+    rail:length 2.3 ;
+    rail:track rail:t-sc-1, rail:t-sc-2 .
+
+rail:sol-central-north a rail:SectionOfLine ;
+    rail:start rail:op-brussels-central ;
+    rail:end rail:op-brussels-north ;
+    rail:length 1.9 ;
+    rail:track rail:t-cn-1, rail:t-sc-2 .
+
+rail:sol-north-schaerbeek a rail:SectionOfLine ;
+    rail:start rail:op-brussels-north ;
+    rail:end rail:op-schaerbeek ;
+    rail:length 2.6 ;
+    rail:track rail:t-ns-1 .
+
+rail:sol-schaerbeek-mechelen a rail:SectionOfLine ;
+    rail:start rail:op-schaerbeek ;
+    rail:end rail:op-mechelen ;
+    rail:length 19.4 ;
+    rail:track rail:t-sm-1, rail:t-sm-2 .
+
+rail:sol-mechelen-antwerp a rail:SectionOfLine ;
+    rail:start rail:op-mechelen ;
+    rail:end rail:op-antwerp-central ;
+    rail:length 22.8 ;
+    rail:track rail:t-ma-1 .
+
+rail:sol-antwerp-essen a rail:SectionOfLine ;
+    rail:start rail:op-antwerp-central ;
+    rail:end rail:op-essen-border ;
+    rail:length 28.1 ;
+    rail:track rail:t-ae-1 .
+
+rail:sol-essen-roosendaal a rail:SectionOfLine ;
+    rail:start rail:op-essen-border ;
+    rail:end rail:op-roosendaal ;
+    rail:length 9.2 ;
+    rail:track rail:t-er-1 .
+
+rail:sol-schaerbeek-leuven a rail:SectionOfLine ;
+    rail:start rail:op-schaerbeek ;
+    rail:end rail:op-leuven ;
+    rail:length 26.5 ;
+    rail:track rail:t-sl-1 .
+
+rail:sol-leuven-liege a rail:SectionOfLine ;
+    rail:start rail:op-leuven ;
+    rail:end rail:op-liege ;
+    rail:length "61,2" ;
+    rail:track rail:t-ll-1 .
+
+rail:sol-south-ghent a rail:SectionOfLine ;
+    rail:start rail:op-brussels-south ;
+    rail:end rail:op-ghent ;
+    rail:length -55.0 ;
+    rail:track rail:t-sg-1 .
+
+rail:sol-namur-namur a rail:SectionOfLine ;
+    rail:start rail:op-namur ;
+    rail:end rail:op-namur ;
+    rail:length 0.4 ;
+    rail:track rail:t-nn-1 .
+
+rail:sol-namur-luxembourg a rail:SectionOfLine ;
+    rail:start rail:op-namur ;
+    rail:length 149.0 ;
+    rail:track rail:siding-namur .
+
+# ---------- tracks ----------
+
+rail:t-sc-1 a rail:RunningTrack ;
+    rail:trackId "1" ; rail:gauge 1435 ; rail:maxSpeed 40 ;
+    rail:electrified true ; rail:voltage 3000 .
+
+rail:t-sc-2 a rail:RunningTrack ;
+    rail:trackId "2" ; rail:gauge 1435 ; rail:maxSpeed 40 ;
+    rail:electrified true ; rail:voltage 3000 .
+
+rail:t-cn-1 a rail:RunningTrack ;
+    rail:trackId "1" ; rail:gauge 1435 ; rail:maxSpeed 40 ;
+    rail:electrified true ; rail:voltage 3000 .
+
+rail:t-ns-1 a rail:RunningTrack ;
+    rail:trackId "1" ; rail:gauge 1435 ; rail:maxSpeed 90 ;
+    rail:electrified true .
+
+rail:t-sm-1 a rail:RunningTrack ;
+    rail:trackId "1" ; rail:gauge 1435 ; rail:maxSpeed 160 ;
+    rail:electrified true ; rail:voltage 3000 .
+
+rail:t-sm-2 a rail:RunningTrack ;
+    rail:trackId "2" ; rail:gauge 1435 ; rail:maxSpeed 160 ;
+    rail:electrified true ; rail:voltage 3000 .
+
+rail:t-ma-1 a rail:RunningTrack ;
+    rail:trackId "1" ; rail:gauge 1435 ; rail:maxSpeed 140 ;
+    rail:electrified true ; rail:voltage 3000 .
+
+rail:t-ae-1 a rail:RunningTrack ;
+    rail:trackId "1" ; rail:gauge 1435 ; rail:maxSpeed 300 ;
+    rail:electrified true ; rail:voltage 25000 .
+
+rail:t-er-1 a rail:RunningTrack ;
+    rail:trackId "1" ; rail:gauge 1435 ; rail:maxSpeed 160 ;
+    rail:electrified true ; rail:voltage 1500 .
+
+rail:t-sl-1 a rail:RunningTrack ;
+    rail:trackId "1" ; rail:gauge 1520 ; rail:maxSpeed 200 ;
+    rail:electrified true ; rail:voltage 3000 .
+
+rail:t-ll-1 a rail:RunningTrack ;
+    rail:trackId "1" ; rail:gauge 1435 ; rail:maxSpeed 400 ;
+    rail:electrified true ; rail:voltage 25000 .
+
+rail:t-sg-1 a rail:RunningTrack ;
+    rail:trackId "1" ; rail:gauge 1435 ; rail:maxSpeed 160 ;
+    rail:electrified false ; rail:voltage 3000 .
+
+rail:t-nn-1 a rail:RunningTrack ;
+    rail:trackId "1" ; rail:gauge 1435 ; rail:maxSpeed "fast" ;
+    rail:electrified "yes" ; rail:voltage 3000 .
+
+rail:siding-namur a rail:Siding ;
+    rail:trackId "S12" ; rail:gauge 1435 ; rail:maxSpeed 60 ;
+    rail:electrified false .

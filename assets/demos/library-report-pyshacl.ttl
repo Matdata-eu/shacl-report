@@ -1,0 +1,332 @@
+# Report of pyshacl 0.40.1 for the library demo:
+#   pyshacl -s library-shapes.ttl -f turtle library-data.ttl
+# It shows that shacl-report reads the reports of other validators, including
+# their anonymous (blank node) property shapes.
+
+@prefix lib: <https://example.org/library#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[] a sh:ValidationReport ;
+    sh:conforms false ;
+    sh:result [ a sh:ValidationResult ;
+            sh:focusNode lib:untitled ;
+            sh:resultMessage "String length not >= Literal(\"1\", datatype=xsd:integer)" ;
+            sh:resultPath schema:name ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:MinLengthConstraintComponent ;
+            sh:sourceShape [ sh:datatype xsd:string ;
+                    sh:maxCount 1 ;
+                    sh:minCount 1 ;
+                    sh:minLength 1 ;
+                    sh:name "title" ;
+                    sh:order 1 ;
+                    sh:path schema:name ] ;
+            sh:value "" ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:member-chloe ;
+            sh:resultMessage "Value does not match pattern '^LIB-[0-9]{6}$'" ;
+            sh:resultPath lib:cardNumber ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:PatternConstraintComponent ;
+            sh:sourceShape [ sh:maxCount 1 ;
+                    sh:minCount 1 ;
+                    sh:name "library card" ;
+                    sh:path lib:cardNumber ;
+                    sh:pattern "^LIB-[0-9]{6}$" ] ;
+            sh:value "LIB-4230" ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:member-eva ;
+            sh:resultMessage "Not a valid email address"@en ;
+            sh:resultPath schema:email ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:MinCountConstraintComponent ;
+            sh:sourceShape _:nbd82df1a30dd4eecabf0b52178abc18db21 ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:de-leeuw-van-vlaenderen ;
+            sh:resultMessage "More than one String shares the same Language" ;
+            sh:resultPath schema:description ;
+            sh:resultSeverity sh:Info ;
+            sh:sourceConstraintComponent sh:UniqueLangConstraintComponent ;
+            sh:sourceShape [ sh:languageIn ( "en" "nl" "fr" ) ;
+                    sh:name "summary" ;
+                    sh:order 7 ;
+                    sh:path schema:description ;
+                    sh:severity sh:Info ;
+                    sh:uniqueLang true ] ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:member-david ;
+            sh:resultMessage "Node lib:member-david is closed. It cannot have value: Literal(\"1990-05-17\", datatype=xsd:date)" ;
+            sh:resultPath schema:birthDate ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:ClosedConstraintComponent ;
+            sh:sourceShape lib:MemberShape ;
+            sh:value "1990-05-17"^^xsd:date ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:les-miserables ;
+            sh:resultMessage "Value is not Literal with datatype xsd:integer" ;
+            sh:resultPath schema:numberOfPages ;
+            sh:resultSeverity sh:Warning ;
+            sh:sourceConstraintComponent sh:DatatypeConstraintComponent ;
+            sh:sourceShape _:nbd82df1a30dd4eecabf0b52178abc18db5 ;
+            sh:value "1,664" ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:verne ;
+            sh:resultMessage "More than 1 values on lib:verne->schema:name" ;
+            sh:resultPath schema:name ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:MaxCountConstraintComponent ;
+            sh:sourceShape _:nbd82df1a30dd4eecabf0b52178abc18db15 ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:les-miserables ;
+            sh:resultMessage "Value is not > Literal(\"0\", datatype=xsd:integer)" ;
+            sh:resultPath schema:numberOfPages ;
+            sh:resultSeverity sh:Warning ;
+            sh:sourceConstraintComponent sh:MinExclusiveConstraintComponent ;
+            sh:sourceShape _:nbd82df1a30dd4eecabf0b52178abc18db5 ;
+            sh:value "1,664" ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:loan-7 ;
+            sh:resultMessage "Less than 1 values on lib:loan-7->lib:loanDate" ;
+            sh:resultPath lib:loanDate ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:MinCountConstraintComponent ;
+            sh:sourceShape _:nbd82df1a30dd4eecabf0b52178abc18db28 ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:emma ;
+            sh:resultMessage "An ISBN has 13 digits and starts with 978 or 979"@en ;
+            sh:resultPath schema:isbn ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:PatternConstraintComponent ;
+            sh:sourceShape _:nbd82df1a30dd4eecabf0b52178abc18db2 ;
+            sh:value "978-0141439587" ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:frankenstein ;
+            sh:resultMessage "Value does not have class schema:Person" ;
+            sh:resultPath schema:author ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:ClassConstraintComponent ;
+            sh:sourceShape _:nbd82df1a30dd4eecabf0b52178abc18db3 ;
+            sh:value lib:penguin ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:loan-3 ;
+            sh:resultMessage "Value of lib:loan-3->lib:dueDate <= Literal(\"2026-10-05\", datatype=xsd:date)" ;
+            sh:resultPath lib:loanDate ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:LessThanConstraintComponent ;
+            sh:sourceShape _:nbd82df1a30dd4eecabf0b52178abc18db28 ;
+            sh:value "2026-10-05"^^xsd:date ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:member-chloe ;
+            sh:resultMessage "Value is not Literal with datatype xsd:date" ;
+            sh:resultPath lib:memberSince ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:DatatypeConstraintComponent ;
+            sh:sourceShape [ sh:datatype xsd:date ;
+                    sh:name "member since" ;
+                    sh:path lib:memberSince ] ;
+            sh:value "14/02/2023" ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:member-bram ;
+            sh:resultMessage "Not a valid email address"@en ;
+            sh:resultPath schema:email ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:PatternConstraintComponent ;
+            sh:sourceShape _:nbd82df1a30dd4eecabf0b52178abc18db21 ;
+            sh:value "bram.desmet@example" ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:loan-6 ;
+            sh:resultMessage "Value does not have class lib:Member" ;
+            sh:resultPath lib:borrower ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:ClassConstraintComponent ;
+            sh:sourceShape [ sh:class lib:Member ;
+                    sh:maxCount 1 ;
+                    sh:minCount 1 ;
+                    sh:name "borrower" ;
+                    sh:path lib:borrower ] ;
+            sh:value lib:member-zoe ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:notre-dame ;
+            sh:resultMessage "The catalogue only lists books in English, Dutch, French or German"@en ;
+            sh:resultPath schema:inLanguage ;
+            sh:resultSeverity sh:Warning ;
+            sh:sourceConstraintComponent sh:InConstraintComponent ;
+            sh:sourceShape _:nbd82df1a30dd4eecabf0b52178abc18db6 ;
+            sh:value "French" ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:loan-7 ;
+            sh:resultMessage "More than 1 values on lib:loan-7->lib:item" ;
+            sh:resultPath lib:item ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:MaxCountConstraintComponent ;
+            sh:sourceShape _:nbd82df1a30dd4eecabf0b52178abc18db26 ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:conscience ;
+            sh:resultMessage "Born after they died?"@en ;
+            sh:resultPath schema:birthDate ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:LessThanConstraintComponent ;
+            sh:sourceShape [ sh:datatype xsd:date ;
+                    sh:lessThan schema:deathDate ;
+                    sh:maxCount 1 ;
+                    sh:message "Born after they died?"@en ;
+                    sh:name "birth date" ;
+                    sh:path schema:birthDate ] ;
+            sh:value "1883-12-03"^^xsd:date ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:loan-4 ;
+            sh:resultMessage "Value of lib:loan-4->lib:returnDate < Literal(\"2026-08-12\", datatype=xsd:date)" ;
+            sh:resultPath lib:loanDate ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:LessThanOrEqualsConstraintComponent ;
+            sh:sourceShape _:nbd82df1a30dd4eecabf0b52178abc18db28 ;
+            sh:value "2026-08-12"^^xsd:date ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:member-eva ;
+            sh:resultMessage "A member can borrow at most 4 books"@en ;
+            sh:resultPath [ sh:inversePath lib:borrower ] ;
+            sh:resultSeverity sh:Warning ;
+            sh:sourceConstraintComponent sh:MaxCountConstraintComponent ;
+            sh:sourceShape [ sh:maxCount 4 ;
+                    sh:message "A member can borrow at most 4 books"@en ;
+                    sh:name "loans" ;
+                    sh:path [ sh:inversePath lib:borrower ] ;
+                    sh:severity sh:Warning ] ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:oliver-twist ;
+            sh:resultMessage "Value is not Literal with datatype xsd:date" ;
+            sh:resultPath schema:datePublished ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:DatatypeConstraintComponent ;
+            sh:sourceShape [ sh:datatype xsd:date ;
+                    sh:maxCount 1 ;
+                    sh:name "publication date" ;
+                    sh:order 4 ;
+                    sh:path schema:datePublished ] ;
+            sh:value "1838"^^xsd:gYear ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:loan-5 ;
+            sh:resultMessage "Value does not have class schema:Book" ;
+            sh:resultPath lib:item ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:ClassConstraintComponent ;
+            sh:sourceShape _:nbd82df1a30dd4eecabf0b52178abc18db26 ;
+            sh:value lib:member-anna ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:werther ;
+            sh:resultMessage "The catalogue only lists books in English, Dutch, French or German"@en ;
+            sh:resultPath schema:inLanguage ;
+            sh:resultSeverity sh:Warning ;
+            sh:sourceConstraintComponent sh:InConstraintComponent ;
+            sh:sourceShape _:nbd82df1a30dd4eecabf0b52178abc18db6 ;
+            sh:value "ru" ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:great-expectations ;
+            sh:resultMessage "Value is not > Literal(\"0\", datatype=xsd:integer)" ;
+            sh:resultPath schema:numberOfPages ;
+            sh:resultSeverity sh:Warning ;
+            sh:sourceConstraintComponent sh:MinExclusiveConstraintComponent ;
+            sh:sourceShape _:nbd82df1a30dd4eecabf0b52178abc18db5 ;
+            sh:value 0 ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:les-miserables ;
+            sh:resultMessage "Value is not <= Literal(\"5000\", datatype=xsd:integer)" ;
+            sh:resultPath schema:numberOfPages ;
+            sh:resultSeverity sh:Warning ;
+            sh:sourceConstraintComponent sh:MaxInclusiveConstraintComponent ;
+            sh:sourceShape _:nbd82df1a30dd4eecabf0b52178abc18db5 ;
+            sh:value "1,664" ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:around-the-world ;
+            sh:resultMessage "An ISBN has 13 digits and starts with 978 or 979"@en ;
+            sh:resultPath schema:isbn ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:MaxCountConstraintComponent ;
+            sh:sourceShape _:nbd82df1a30dd4eecabf0b52178abc18db2 ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:faust ;
+            sh:resultMessage "Less than 1 values on lib:faust->schema:author" ;
+            sh:resultPath schema:author ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:MinCountConstraintComponent ;
+            sh:sourceShape _:nbd82df1a30dd4eecabf0b52178abc18db3 ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:multatuli ;
+            sh:resultMessage "Less than 1 values on lib:multatuli->schema:name" ;
+            sh:resultPath schema:name ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:MinCountConstraintComponent ;
+            sh:sourceShape _:nbd82df1a30dd4eecabf0b52178abc18db15 ],
+        [ a sh:ValidationResult ;
+            sh:focusNode lib:member-david ;
+            sh:resultMessage "Node lib:member-david is closed. It cannot have value: Literal(\"+32 470 12 34 56\")" ;
+            sh:resultPath schema:telephone ;
+            sh:resultSeverity sh:Violation ;
+            sh:sourceConstraintComponent sh:ClosedConstraintComponent ;
+            sh:sourceShape lib:MemberShape ;
+            sh:value "+32 470 12 34 56" ] .
+
+_:N153be31c81004b47928ec2ae235fdd1e rdf:first "nl" ;
+    rdf:rest ( "fr" "de" ) .
+
+_:Nb90c16e2045d4f0ea52a31a277817e42 rdf:first "en" ;
+    rdf:rest _:N153be31c81004b47928ec2ae235fdd1e .
+
+_:nbd82df1a30dd4eecabf0b52178abc18db15 sh:maxCount 1 ;
+    sh:minCount 1 ;
+    sh:name "name" ;
+    sh:path schema:name .
+
+_:nbd82df1a30dd4eecabf0b52178abc18db2 sh:maxCount 1 ;
+    sh:message "An ISBN has 13 digits and starts with 978 or 979"@en ;
+    sh:minCount 1 ;
+    sh:name "ISBN" ;
+    sh:order 2 ;
+    sh:path schema:isbn ;
+    sh:pattern "^97[89][0-9]{10}$" .
+
+_:nbd82df1a30dd4eecabf0b52178abc18db21 sh:maxCount 1 ;
+    sh:message "Not a valid email address"@en ;
+    sh:minCount 1 ;
+    sh:name "email" ;
+    sh:nodeKind sh:Literal ;
+    sh:path schema:email ;
+    sh:pattern "^[^@\\s]+@[^@\\s]+\\.[a-z]{2,}$" .
+
+_:nbd82df1a30dd4eecabf0b52178abc18db26 sh:class schema:Book ;
+    sh:maxCount 1 ;
+    sh:minCount 1 ;
+    sh:name "book" ;
+    sh:path lib:item .
+
+_:nbd82df1a30dd4eecabf0b52178abc18db3 sh:class schema:Person ;
+    sh:minCount 1 ;
+    sh:name "author" ;
+    sh:order 3 ;
+    sh:path schema:author .
+
+_:nbd82df1a30dd4eecabf0b52178abc18db6 sh:in _:Nb90c16e2045d4f0ea52a31a277817e42 ;
+    sh:message "The catalogue only lists books in English, Dutch, French or German"@en ;
+    sh:name "language" ;
+    sh:order 6 ;
+    sh:path schema:inLanguage ;
+    sh:severity sh:Warning .
+
+_:nbd82df1a30dd4eecabf0b52178abc18db28 sh:datatype xsd:date ;
+    sh:lessThan lib:dueDate ;
+    sh:lessThanOrEquals lib:returnDate ;
+    sh:minCount 1 ;
+    sh:name "loan date" ;
+    sh:path lib:loanDate .
+
+_:nbd82df1a30dd4eecabf0b52178abc18db5 sh:datatype xsd:integer ;
+    sh:maxInclusive 5000 ;
+    sh:minExclusive 0 ;
+    sh:name "pages" ;
+    sh:order 5 ;
+    sh:path schema:numberOfPages ;
+    sh:severity sh:Warning .
+

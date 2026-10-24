@@ -1,0 +1,271 @@
+# Demo: a small library catalogue, checked by library-shapes.ttl.
+# Some records are fine; many have a mistake of the kind real catalogues have.
+
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix schema: <https://schema.org/> .
+@prefix lib:    <https://example.org/library#> .
+
+# ---------- authors ----------
+
+lib:austen a schema:Person ;
+    schema:name "Jane Austen" ;
+    schema:birthDate "1775-12-16"^^xsd:date ;
+    schema:deathDate "1817-07-18"^^xsd:date .
+
+lib:dickens a schema:Person ;
+    schema:name "Charles Dickens" ;
+    schema:birthDate "1812-02-07"^^xsd:date ;
+    schema:deathDate "1870-06-09"^^xsd:date .
+
+lib:conscience a schema:Person ;
+    schema:name "Hendrik Conscience" ;
+    schema:birthDate "1883-12-03"^^xsd:date ;
+    schema:deathDate "1883-09-10"^^xsd:date .
+
+lib:hugo a schema:Person ;
+    schema:name "Victor Hugo" ;
+    schema:birthDate "1802-02-26"^^xsd:date ;
+    schema:deathDate "1885-05-22"^^xsd:date .
+
+lib:verne a schema:Person ;
+    schema:name "Jules Verne", "Jules Gabriel Verne" ;
+    schema:birthDate "1828-02-08"^^xsd:date ;
+    schema:deathDate "1905-03-24"^^xsd:date .
+
+lib:multatuli a schema:Person ;
+    schema:birthDate "1820-03-02"^^xsd:date ;
+    schema:deathDate "1887-02-19"^^xsd:date .
+
+lib:shelley a schema:Person ;
+    schema:name "Mary Shelley" ;
+    schema:birthDate "1797-08-30"^^xsd:date ;
+    schema:deathDate "1851-02-01"^^xsd:date .
+
+lib:goethe a schema:Person ;
+    schema:name "Johann Wolfgang von Goethe" ;
+    schema:birthDate "1749-08-28"^^xsd:date ;
+    schema:deathDate "1832-03-22"^^xsd:date .
+
+# Listed as an author, but it is a publisher.
+lib:penguin a schema:Organization ;
+    schema:name "Penguin Classics" .
+
+# ---------- books ----------
+
+lib:pride-and-prejudice a schema:Book ;
+    schema:name "Pride and Prejudice" ;
+    schema:isbn "9780141439518" ;
+    schema:author lib:austen ;
+    schema:datePublished "1813-01-28"^^xsd:date ;
+    schema:numberOfPages 480 ;
+    schema:inLanguage "en" ;
+    schema:description "Elizabeth Bennet and Mr Darcy, and their pride and prejudice."@en .
+
+lib:emma a schema:Book ;
+    schema:name "Emma" ;
+    schema:isbn "978-0141439587" ;
+    schema:author lib:austen ;
+    schema:datePublished "1815-12-23"^^xsd:date ;
+    schema:numberOfPages 474 ;
+    schema:inLanguage "en" .
+
+lib:oliver-twist a schema:Book ;
+    schema:name "Oliver Twist" ;
+    schema:isbn "9780141439747" ;
+    schema:author lib:dickens ;
+    schema:datePublished "1838"^^xsd:gYear ;
+    schema:numberOfPages 608 ;
+    schema:inLanguage "en" .
+
+lib:great-expectations a schema:Book ;
+    schema:name "Great Expectations" ;
+    schema:isbn "9780141439563" ;
+    schema:author lib:dickens ;
+    schema:numberOfPages 0 ;
+    schema:inLanguage "en" .
+
+lib:de-leeuw-van-vlaenderen a schema:Book ;
+    schema:name "De Leeuw van Vlaenderen" ;
+    schema:isbn "9789020403113" ;
+    schema:author lib:conscience ;
+    schema:datePublished "1838-01-01"^^xsd:date ;
+    schema:inLanguage "nl" ;
+    schema:description "Historische roman over de Guldensporenslag."@nl,
+        "De Guldensporenslag van 1302 als roman."@nl .
+
+lib:les-miserables a schema:Book ;
+    schema:name "Les Misérables" ;
+    schema:isbn "9782253096344" ;
+    schema:author lib:hugo ;
+    schema:datePublished "1862-04-03"^^xsd:date ;
+    schema:numberOfPages "1,664" ;
+    schema:inLanguage "fr" .
+
+lib:notre-dame a schema:Book ;
+    schema:name "Notre-Dame de Paris" ;
+    schema:isbn "9782253009689" ;
+    schema:author lib:hugo ;
+    schema:datePublished "1831-03-16"^^xsd:date ;
+    schema:numberOfPages 940 ;
+    schema:inLanguage "French" .
+
+lib:twenty-thousand-leagues a schema:Book ;
+    schema:name "Vingt mille lieues sous les mers" ;
+    schema:isbn "9782253006329" ;
+    schema:author lib:verne ;
+    schema:datePublished "1870-06-20"^^xsd:date ;
+    schema:numberOfPages 640 ;
+    schema:inLanguage "fr" ;
+    schema:description "Captain Nemo and the Nautilus."@en, "Le capitaine Nemo et le Nautilus."@fr .
+
+lib:around-the-world a schema:Book ;
+    schema:name "Le Tour du monde en quatre-vingts jours" ;
+    schema:isbn "9782253012573", "9780140449068" ;
+    schema:author lib:verne ;
+    schema:datePublished "1872-11-06"^^xsd:date ;
+    schema:numberOfPages 352 ;
+    schema:inLanguage "fr" .
+
+lib:max-havelaar a schema:Book ;
+    schema:name "Max Havelaar" ;
+    schema:isbn "9789028241663" ;
+    schema:author lib:multatuli ;
+    schema:datePublished "1860-05-14"^^xsd:date ;
+    schema:numberOfPages 384 ;
+    schema:inLanguage "nl" ;
+    schema:description "Of de koffiveilingen der Nederlandsche Handel-Maatschappy."@nl-BE .
+
+lib:frankenstein a schema:Book ;
+    schema:name "Frankenstein" ;
+    schema:isbn "9780141439471" ;
+    schema:author lib:shelley, lib:penguin ;
+    schema:datePublished "1818-01-01"^^xsd:date ;
+    schema:numberOfPages 280 ;
+    schema:inLanguage "en" .
+
+lib:faust a schema:Book ;
+    schema:name "Faust. Eine Tragödie" ;
+    schema:isbn "9783150000014" ;
+    schema:datePublished "1808-01-01"^^xsd:date ;
+    schema:numberOfPages 152 ;
+    schema:inLanguage "de" .
+
+lib:werther a schema:Book ;
+    schema:name "Die Leiden des jungen Werthers" ;
+    schema:isbn "9783150000670" ;
+    schema:author lib:goethe ;
+    schema:datePublished "1774-09-29"^^xsd:date ;
+    schema:numberOfPages 160 ;
+    schema:inLanguage "de", "ru" .
+
+lib:untitled a schema:Book ;
+    schema:name "" ;
+    schema:isbn "9780000000002" ;
+    schema:author lib:shelley .
+
+# ---------- members ----------
+
+lib:member-anna a lib:Member ;
+    schema:name "Anna Peeters" ;
+    schema:email "anna.peeters@example.org" ;
+    lib:cardNumber "LIB-004211" ;
+    lib:memberSince "2019-03-14"^^xsd:date .
+
+lib:member-bram a lib:Member ;
+    schema:name "Bram De Smet" ;
+    schema:email "bram.desmet@example" ;
+    lib:cardNumber "LIB-004215" ;
+    lib:memberSince "2021-09-01"^^xsd:date .
+
+lib:member-chloe a lib:Member ;
+    schema:name "Chloé Dubois" ;
+    schema:email "chloe.dubois@example.org" ;
+    lib:cardNumber "LIB-4230" ;
+    lib:memberSince "14/02/2023" .
+
+lib:member-david a lib:Member ;
+    schema:name "David Janssens" ;
+    schema:email "david.janssens@example.org" ;
+    lib:cardNumber "LIB-004298" ;
+    schema:birthDate "1990-05-17"^^xsd:date ;
+    schema:telephone "+32 470 12 34 56" .
+
+lib:member-eva a lib:Member ;
+    schema:name "Eva Maes" ;
+    lib:cardNumber "LIB-004301" ;
+    lib:memberSince "2024-01-08"^^xsd:date .
+
+# ---------- loans ----------
+
+lib:loan-1 a lib:Loan ;
+    lib:item lib:pride-and-prejudice ;
+    lib:borrower lib:member-anna ;
+    lib:loanDate "2026-09-02"^^xsd:date ;
+    lib:dueDate "2026-09-30"^^xsd:date ;
+    lib:returnDate "2026-09-21"^^xsd:date .
+
+lib:loan-2 a lib:Loan ;
+    lib:item lib:les-miserables ;
+    lib:borrower lib:member-anna ;
+    lib:loanDate "2026-10-01"^^xsd:date ;
+    lib:dueDate "2026-10-29"^^xsd:date .
+
+lib:loan-3 a lib:Loan ;
+    lib:item lib:max-havelaar ;
+    lib:borrower lib:member-bram ;
+    lib:loanDate "2026-10-05"^^xsd:date ;
+    lib:dueDate "2026-09-05"^^xsd:date .
+
+lib:loan-4 a lib:Loan ;
+    lib:item lib:frankenstein ;
+    lib:borrower lib:member-chloe ;
+    lib:loanDate "2026-08-12"^^xsd:date ;
+    lib:dueDate "2026-09-09"^^xsd:date ;
+    lib:returnDate "2026-08-10"^^xsd:date .
+
+lib:loan-5 a lib:Loan ;
+    lib:item lib:member-anna ;
+    lib:borrower lib:member-chloe ;
+    lib:loanDate "2026-10-10"^^xsd:date ;
+    lib:dueDate "2026-11-07"^^xsd:date .
+
+lib:loan-6 a lib:Loan ;
+    lib:item lib:emma ;
+    lib:borrower lib:member-zoe ;
+    lib:loanDate "2026-10-11"^^xsd:date ;
+    lib:dueDate "2026-11-08"^^xsd:date .
+
+lib:loan-7 a lib:Loan ;
+    lib:item lib:oliver-twist, lib:great-expectations ;
+    lib:borrower lib:member-david ;
+    lib:dueDate "2026-11-12"^^xsd:date .
+
+lib:loan-8 a lib:Loan ;
+    lib:item lib:faust ;
+    lib:borrower lib:member-eva ;
+    lib:loanDate "2026-10-02"^^xsd:date ;
+    lib:dueDate "2026-10-30"^^xsd:date .
+
+lib:loan-9 a lib:Loan ;
+    lib:item lib:werther ;
+    lib:borrower lib:member-eva ;
+    lib:loanDate "2026-10-02"^^xsd:date ;
+    lib:dueDate "2026-10-30"^^xsd:date .
+
+lib:loan-10 a lib:Loan ;
+    lib:item lib:notre-dame ;
+    lib:borrower lib:member-eva ;
+    lib:loanDate "2026-10-09"^^xsd:date ;
+    lib:dueDate "2026-11-06"^^xsd:date .
+
+lib:loan-11 a lib:Loan ;
+    lib:item lib:twenty-thousand-leagues ;
+    lib:borrower lib:member-eva ;
+    lib:loanDate "2026-10-09"^^xsd:date ;
+    lib:dueDate "2026-11-06"^^xsd:date .
+
+lib:loan-12 a lib:Loan ;
+    lib:item lib:around-the-world ;
+    lib:borrower lib:member-eva ;
+    lib:loanDate "2026-10-16"^^xsd:date ;
+    lib:dueDate "2026-11-13"^^xsd:date .

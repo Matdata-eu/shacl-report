@@ -51,6 +51,9 @@
             <button data-export="ttl" role="menuitem" class="hidden">Validation report (Turtle)</button>
           </div>
         </div>
+        <button id="help-btn" class="icon-btn" aria-haspopup="dialog" aria-label="Help: how to use shacl-report" title="Help">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M9.5 9.5a2.5 2.5 0 114 2c-.9.6-1.5 1.1-1.5 2.2M12 17h.01" /></svg>
+        </button>
         <button id="about-btn" class="icon-btn" aria-haspopup="dialog" aria-label="About shacl-report" title="About">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" /></svg>
         </button>
@@ -220,6 +223,71 @@
           <a href="https://tabulator.info" target="_blank" rel="noopener">Tabulator</a>,
           <a href="https://codemirror.net/" target="_blank" rel="noopener">CodeMirror</a> and
           <a href="https://github.com/oxigraph/oxigraph" target="_blank" rel="noopener">Oxigraph</a>'s RDF and SPARQL crates.</p>
+      </div>
+    </div>
+
+    <div id="help" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="help-title">
+      <div class="modal-card help-card">
+        <div class="modal-head">
+          <h2 id="help-title">How to use shacl-report</h2>
+          <button id="close-help" class="icon-btn" aria-label="Close">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+          </button>
+        </div>
+        <p class="help-intro">Check RDF data against SHACL shapes, or read the report of any validator, and find out what is wrong and where. Open a topic below.</p>
+        <details class="help-sec" open>
+          <summary>Getting started</summary>
+          <ul>
+            <li class="server-only hidden"><strong>Validate data</strong>: drop your shapes and your data on the start screen and press <strong>Validate</strong>. shacl-report checks SHACL Core and SPARQL constraints itself.</li>
+            <li class="server-only hidden"><strong>Open a report</strong>: read the report of another validator (pyshacl, Apache Jena, TopBraid, RDF4J…). Add the shapes it used to name every shape and see the broken rule, and the data to see the resource behind each problem.</li>
+            <li class="server-only hidden">Shapes on their own open the <strong>Shapes</strong> explorer, without results.</li>
+            <li class="server-only hidden">No files at hand? Pick one of the <strong>demos</strong> under the form.</li>
+            <li class="server-only hidden"><strong>Open report</strong>, in the top bar, loads other files. Turtle, N-Triples, RDF/XML, TriG and N-Quads are read, also gzipped.</li>
+            <li>The <strong>Results</strong> tab starts with an overview: whether the data conforms, the number of results per severity, and the most affected shapes and most common problems. Click a bar to filter on it.</li>
+          </ul>
+        </details>
+        <details class="help-sec">
+          <summary>Results and filters</summary>
+          <ul>
+            <li>Filter by <strong>severity</strong>, <strong>problem type</strong> and <strong>shape</strong> in the side panel (the filter button on a phone). Active filters show as chips above the results; click a chip's × to remove it.</li>
+            <li>The <strong>search</strong> box matches resources, paths, values and messages. Press <kbd>/</kbd> to jump to it.</li>
+            <li><strong>Group by</strong> shape, resource or problem, or not at all, and switch between cards and a sortable table.</li>
+          </ul>
+        </details>
+        <details class="help-sec">
+          <summary>Result details</summary>
+          <ul>
+            <li>Click a result to open it: the problem in plain words, the resource, path and value, and the rule it broke, such as <code>sh:maxInclusive 150</code>.</li>
+            <li>With the data loaded, <strong>Resource data</strong> lists the resource's triples and highlights the offending value, or says the value is missing.</li>
+            <li><strong>Show only these</strong> lists every problem of the same resource.</li>
+            <li><kbd>j</kbd> / <kbd>k</kbd> (or <kbd>↓</kbd> / <kbd>↑</kbd>) go to the next or previous result, <kbd>Esc</kbd> closes the panel.</li>
+          </ul>
+        </details>
+        <details class="help-sec">
+          <summary>Shapes</summary>
+          <ul>
+            <li>The <strong>Shapes</strong> tab lists every node and property shape. Each one says which resources it applies to, its rules in plain language, and how many results it produced; click the count to see them.</li>
+            <li>From a result, <strong>Explore this shape</strong> jumps to its shape.</li>
+            <li>The play buttons open a rule, a whole shape or its focus nodes as a SPARQL query, ready to run against your own triple store.</li>
+          </ul>
+        </details>
+        <details class="help-sec">
+          <summary>SPARQL and exploring IRIs</summary>
+          <ul>
+            <li>In the <strong>SPARQL</strong> tab, enter the endpoint that holds your data and press <strong>Use endpoint</strong>. Run the queries from the Shapes tab, or write your own.</li>
+            <li class="server-only hidden"><strong>Relay through shacl-report</strong> sends the queries through this server, for endpoints that do not allow requests from the browser (CORS).</li>
+            <li><kbd>Ctrl</kbd>+click (<kbd>⌘</kbd>+click on a Mac) any IRI to load its triples from the endpoint; <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+click loads the triples that point to it. In that viewer, Ctrl+click again to keep exploring.</li>
+          </ul>
+        </details>
+        <details class="help-sec">
+          <summary>Export and sharing</summary>
+          <ul>
+            <li><strong>Export</strong> downloads the results you see as CSV<span class="server-only hidden">, the whole report as one standalone HTML file that opens without a server, or the validation report as Turtle when shacl-report validated the data</span>.</li>
+            <li>The same viewer is available from the command line, for example to publish an HTML report from a CI pipeline: see the <a href="https://github.com/Matdata-eu/shacl-report#usage" target="_blank" rel="noopener">README</a>.</li>
+            <li>The theme button switches between light and dark.</li>
+          </ul>
+        </details>
+        <p class="help-foot">Something unclear or missing? <a href="https://github.com/Matdata-eu/shacl-report/issues" target="_blank" rel="noopener">Ask on GitHub</a>.</p>
       </div>
     </div>
 

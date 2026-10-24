@@ -12,6 +12,35 @@
   const FACET_PAGE = 12;
   const THEME_KEY = "shacl-report-theme";
 
+  // Demo data sets, served from /assets/demos/. Open one directly with ?demo=<id>.
+  const DEMOS = [
+    {
+      id: "library",
+      title: "Library catalogue",
+      action: "Validate",
+      text: "Books, authors, members and loans with everyday mistakes: missing titles, bad ISBNs, wrong datatypes, dates in the wrong order and properties a closed shape does not allow.",
+      shapes: ["library-shapes.ttl"],
+      data: ["library-data.ttl"],
+    },
+    {
+      id: "railway",
+      title: "Railway network",
+      action: "Validate",
+      text: "Stations, sections of line and tracks, checked with nested shapes, sh:xone, qualified value shapes, SPARQL constraints and a custom constraint component.",
+      shapes: ["railway-shapes.ttl"],
+      data: ["railway-data.ttl"],
+    },
+    {
+      id: "pyshacl",
+      title: "A pyshacl report",
+      action: "Open report",
+      text: "The library check as pyshacl reported it: raw RDF with anonymous shapes, matched back to the shapes and data to make it readable.",
+      report: "library-report-pyshacl.ttl",
+      shapes: ["library-shapes.ttl"],
+      data: ["library-data.ttl"],
+    },
+  ];
+
   const ICON = {
     check: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>',
     cross: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>',
@@ -103,6 +132,7 @@
     drawer: $("drawer"), drawerBody: $("drawer-body"), drawerPos: $("drawer-pos"),
     prev: $("prev-result"), next: $("next-result"), closeDrawer: $("close-drawer"),
     about: $("about"), aboutBtn: $("about-btn"), closeAbout: $("close-about"),
+    help: $("help"), helpBtn: $("help-btn"), closeHelp: $("close-help"),
     modal: $("modal"), closeModal: $("close-modal"), formSlot: $("open-form-slot"), formTpl: $("open-form-tpl"),
     toast: $("toast"), loading: $("loading"), loadingMsg: $("loading-msg"),
     tabs: $("tabs"), resultsView: $("results-view"), shapesView: $("shapes-view"), sparqlView: $("sparql-view"), explore: $("explore"),
@@ -836,6 +866,7 @@
     pathShapes.addEventListener("input", refresh);
     pathData.addEventListener("input", refresh);
     setMode(savedMode === "report" ? "report" : "validate");
+    slot.appendChild(demoList(msg));
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -883,6 +914,58 @@
       }
     });
     return form;
+  }
+
+  /** Cards that load a demo data set; errors go to the open form's message line. */
+  function demoList(msg) {
+    const box = document.createElement("section");
+    box.className = "demos";
+    box.innerHTML = `<h3>No files at hand? Try a demo</h3><div class="demo-grid">${DEMOS.map((d) => `<button type="button" class="demo" data-demo="${d.id}"><span class="demo-action">${esc(d.action)}</span><span class="demo-title">${esc(d.title)}</span><span class="demo-text">${esc(d.text)}</span></button>`).join("")}</div>`;
+    box.addEventListener("click", async (e) => {
+      const b = e.target.closest("[data-demo]");
+      if (!b) return;
+      const demo = DEMOS.find((d) => d.id === b.dataset.demo);
+      const buttons = box.querySelectorAll("button");
+      for (const x of buttons) x.disabled = true;
+      msg.className = "form-msg busy";
+      msg.textContent = `Loading the ${demo.title.toLowerCase()} demo…`;
+      try {
+        await loadDemo(demo);
+        hideModal();
+        await loadFromServer();
+      } catch (err) {
+        msg.className = "form-msg";
+        msg.textContent = err.message;
+        for (const x of buttons) x.disabled = false;
+      }
+    });
+    return box;
+  }
+
+  /** Upload a demo's files as if the visitor had dropped them, so public servers treat it like any upload. */
+  async function loadDemo(demo) {
+    const file = async (name) => {
+      const resp = await fetch(`/assets/demos/${name}`);
+      if (!resp.ok) throw new Error(`Could not fetch the demo file ${name}`);
+      return { name, content: bytesToBase64(new Uint8Array(await resp.arrayBuffer())) };
+    };
+    const body = {
+      report: demo.report ? await file(demo.report) : null,
+      shapes: await Promise.all((demo.shapes || []).map(file)),
+      data: await Promise.all((demo.data || []).map(file)),
+    };
+    const resp = await fetch("/api/upload", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+  }
+
+  function bytesToBase64(bytes) {
+    let bin = "";
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(bin);
   }
 
   function toBase64(file) {
@@ -1195,6 +1278,9 @@
     els.aboutBtn.addEventListener("click", showAbout);
     els.closeAbout.addEventListener("click", hideAbout);
     els.about.addEventListener("click", (e) => { if (e.target === els.about) hideAbout(); });
+    els.helpBtn.addEventListener("click", showHelp);
+    els.closeHelp.addEventListener("click", hideHelp);
+    els.help.addEventListener("click", (e) => { if (e.target === els.help) hideHelp(); });
     els.exportBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       const open = els.exportMenu.classList.toggle("hidden") === false;
@@ -1214,7 +1300,8 @@
     document.addEventListener("keydown", (e) => {
       const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement && document.activeElement.tagName);
       if (e.key === "Escape") {
-        if (!els.about.classList.contains("hidden")) hideAbout();
+        if (!els.help.classList.contains("hidden")) hideHelp();
+        else if (!els.about.classList.contains("hidden")) hideAbout();
         else if (!els.modal.classList.contains("hidden")) hideModal();
         else if (state.turtle && state.turtle.isOpen) state.turtle.close();
         else if (els.filters.classList.contains("open")) openFilters(false);
@@ -1281,6 +1368,37 @@
     els.aboutBtn.focus();
   }
 
+  /** Load the demo named by ?demo=<id>, if any, then whatever the server has. */
+  async function start() {
+    const params = new URLSearchParams(window.location.search);
+    const demo = DEMOS.find((d) => d.id === params.get("demo"));
+    if (demo) {
+      params.delete("demo");
+      const rest = params.toString();
+      history.replaceState(null, "", window.location.pathname + (rest ? `?${rest}` : "") + window.location.hash);
+      setLoading(true, `Loading the ${demo.title.toLowerCase()} demo…`);
+      try {
+        await loadDemo(demo);
+      } catch (e) {
+        toast(`Could not load the demo: ${e.message}`);
+      } finally {
+        setLoading(false);
+      }
+    }
+    await loadFromServer();
+  }
+
+  // ---------- help ----------
+  function showHelp() {
+    els.help.classList.remove("hidden");
+    els.closeHelp.focus();
+  }
+
+  function hideHelp() {
+    els.help.classList.add("hidden");
+    els.helpBtn.focus();
+  }
+
   function init() {
     applyTheme(storedTheme());
     bind();
@@ -1289,7 +1407,7 @@
       setReport(window.SHACL_REPORT);
       return;
     }
-    loadFromServer().catch((e) => {
+    start().catch((e) => {
       els.welcome.innerHTML = `<div class="empty-results"><h3>Could not load the report</h3><p>${esc(e.message)}</p></div>`;
       els.welcome.classList.remove("hidden");
     });

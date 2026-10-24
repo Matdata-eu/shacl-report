@@ -1,0 +1,180 @@
+# Demo: a small library catalogue, checked with SHACL Core.
+#
+# The shapes cover the constraints most data sets need: cardinality, datatypes,
+# patterns, ranges, allowed values, links to other classes, comparisons
+# between properties and closed shapes. The data in library-data.ttl breaks
+# most of them on purpose.
+
+@prefix sh:     <http://www.w3.org/ns/shacl#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+@prefix lib:    <https://example.org/library#> .
+
+lib:BookShape
+    a sh:NodeShape ;
+    rdfs:label "Book" ;
+    sh:description "Every book in the catalogue needs a title, a valid ISBN and at least one author." ;
+    sh:targetClass schema:Book ;
+    sh:property [
+        sh:path schema:name ;
+        sh:name "title" ;
+        sh:order 1 ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:minLength 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:isbn ;
+        sh:name "ISBN" ;
+        sh:order 2 ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:pattern "^97[89][0-9]{10}$" ;
+        sh:message "An ISBN has 13 digits and starts with 978 or 979"@en ;
+    ] ;
+    sh:property [
+        sh:path schema:author ;
+        sh:name "author" ;
+        sh:order 3 ;
+        sh:minCount 1 ;
+        sh:class schema:Person ;
+    ] ;
+    sh:property [
+        sh:path schema:datePublished ;
+        sh:name "publication date" ;
+        sh:order 4 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:date ;
+    ] ;
+    sh:property [
+        sh:path schema:numberOfPages ;
+        sh:name "pages" ;
+        sh:order 5 ;
+        sh:datatype xsd:integer ;
+        sh:minExclusive 0 ;
+        sh:maxInclusive 5000 ;
+        sh:severity sh:Warning ;
+    ] ;
+    sh:property [
+        sh:path schema:inLanguage ;
+        sh:name "language" ;
+        sh:order 6 ;
+        sh:in ( "en" "nl" "fr" "de" ) ;
+        sh:severity sh:Warning ;
+        sh:message "The catalogue only lists books in English, Dutch, French or German"@en ;
+    ] ;
+    sh:property [
+        sh:path schema:description ;
+        sh:name "summary" ;
+        sh:order 7 ;
+        sh:languageIn ( "en" "nl" "fr" ) ;
+        sh:uniqueLang true ;
+        sh:severity sh:Info ;
+    ] .
+
+lib:AuthorShape
+    a sh:NodeShape ;
+    rdfs:label "Author" ;
+    sh:description "Everyone named as the author of a book." ;
+    sh:targetObjectsOf schema:author ;
+    sh:property [
+        sh:path schema:name ;
+        sh:name "name" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:birthDate ;
+        sh:name "birth date" ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:date ;
+        sh:lessThan schema:deathDate ;
+        sh:message "Born after they died?"@en ;
+    ] ;
+    sh:property [
+        sh:path [ sh:inversePath schema:author ] ;
+        sh:name "books written" ;
+        sh:class schema:Book ;
+        sh:severity sh:Info ;
+        sh:message "Listed as the author of something that is not a book"@en ;
+    ] .
+
+lib:MemberShape
+    a sh:NodeShape ;
+    rdfs:label "Member" ;
+    sh:description "A library member. Only the properties below are allowed, to keep personal data to a minimum." ;
+    sh:targetClass lib:Member ;
+    sh:closed true ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [
+        sh:path schema:name ;
+        sh:name "name" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:email ;
+        sh:name "email" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:Literal ;
+        sh:pattern "^[^@\\s]+@[^@\\s]+\\.[a-z]{2,}$" ;
+        sh:message "Not a valid email address"@en ;
+    ] ;
+    sh:property [
+        sh:path lib:cardNumber ;
+        sh:name "library card" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:pattern "^LIB-[0-9]{6}$" ;
+    ] ;
+    sh:property [
+        sh:path lib:memberSince ;
+        sh:name "member since" ;
+        sh:datatype xsd:date ;
+    ] ;
+    sh:property [
+        sh:path [ sh:inversePath lib:borrower ] ;
+        sh:name "loans" ;
+        sh:maxCount 4 ;
+        sh:severity sh:Warning ;
+        sh:message "A member can borrow at most 4 books"@en ;
+    ] .
+
+lib:LoanShape
+    a sh:NodeShape ;
+    rdfs:label "Loan" ;
+    sh:description "A book lent to a member." ;
+    sh:targetClass lib:Loan ;
+    sh:property [
+        sh:path lib:item ;
+        sh:name "book" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class schema:Book ;
+    ] ;
+    sh:property [
+        sh:path lib:borrower ;
+        sh:name "borrower" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class lib:Member ;
+    ] ;
+    sh:property [
+        sh:path lib:loanDate ;
+        sh:name "loan date" ;
+        sh:minCount 1 ;
+        sh:datatype xsd:date ;
+        sh:lessThan lib:dueDate ;
+        sh:lessThanOrEquals lib:returnDate ;
+    ] ;
+    sh:property [
+        sh:path lib:dueDate ;
+        sh:name "due date" ;
+        sh:minCount 1 ;
+        sh:datatype xsd:date ;
+        sh:severity sh:Warning ;
+    ] .

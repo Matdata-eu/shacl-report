@@ -72,6 +72,32 @@ pub static ASSETS: &[Asset] = &[
         "text/css; charset=utf-8",
         "assets/vendor/tabulator/tabulator.min.css"
     ),
+    // Demo data sets, loaded from the welcome screen or with `?demo=<id>`.
+    txt!(
+        "/assets/demos/library-shapes.ttl",
+        "text/turtle; charset=utf-8",
+        "assets/demos/library-shapes.ttl"
+    ),
+    txt!(
+        "/assets/demos/library-data.ttl",
+        "text/turtle; charset=utf-8",
+        "assets/demos/library-data.ttl"
+    ),
+    txt!(
+        "/assets/demos/library-report-pyshacl.ttl",
+        "text/turtle; charset=utf-8",
+        "assets/demos/library-report-pyshacl.ttl"
+    ),
+    txt!(
+        "/assets/demos/railway-shapes.ttl",
+        "text/turtle; charset=utf-8",
+        "assets/demos/railway-shapes.ttl"
+    ),
+    txt!(
+        "/assets/demos/railway-data.ttl",
+        "text/turtle; charset=utf-8",
+        "assets/demos/railway-data.ttl"
+    ),
 ];
 
 pub fn lookup(path: &str) -> Option<&'static Asset> {
