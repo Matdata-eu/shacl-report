@@ -8,6 +8,20 @@ use oxrdf::vocab::rdf;
 use oxrdf::{Graph, NamedNode, Term, TermRef};
 use std::collections::HashSet;
 
+/// One data triple a path walks over, as `subject predicate object`.
+pub struct Step<'t> {
+    pub subject: &'t Term,
+    pub predicate: &'t NamedNode,
+    pub object: &'t Term,
+    /// Walked from object to subject (an inverse path).
+    pub inverse: bool,
+}
+
+struct Ctx<'g, 't> {
+    g: &'g Graph,
+    trace: &'t mut dyn FnMut(Step<'_>),
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Path {
     Predicate(NamedNode),
@@ -76,11 +90,36 @@ impl Path {
         }
     }
 
+    /// True when `predicate` occurs anywhere in the path.
+    pub fn mentions(&self, predicate: oxrdf::NamedNodeRef<'_>) -> bool {
+        match self {
+            Path::Predicate(p) => p.as_ref() == predicate,
+            Path::Inverse(p) | Path::ZeroOrMore(p) | Path::OneOrMore(p) | Path::ZeroOrOne(p) => {
+                p.mentions(predicate)
+            }
+            Path::Sequence(items) | Path::Alternative(items) => {
+                items.iter().any(|p| p.mentions(predicate))
+            }
+        }
+    }
+
     /// The value nodes reachable from `node`, without duplicates, in order.
     pub fn eval(&self, g: &Graph, node: &Term) -> Vec<Term> {
+        self.eval_traced(g, node, &mut |_| {})
+    }
+
+    /// [`Path::eval`], reporting every data triple the path walks over,
+    /// intermediate steps of sequences and closures included.
+    pub fn eval_traced(
+        &self,
+        g: &Graph,
+        node: &Term,
+        trace: &mut dyn FnMut(Step<'_>),
+    ) -> Vec<Term> {
         let mut out = Vec::new();
         let mut seen = HashSet::new();
-        self.step(g, node, false, &mut |t| {
+        let mut ctx = Ctx { g, trace };
+        self.step(&mut ctx, node, false, &mut |t| {
             if seen.insert(t.clone()) {
                 out.push(t);
             }
@@ -88,20 +127,35 @@ impl Path {
         out
     }
 
-    fn step(&self, g: &Graph, node: &Term, inverse: bool, emit: &mut dyn FnMut(Term)) {
+    fn step(&self, ctx: &mut Ctx<'_, '_>, node: &Term, inverse: bool, emit: &mut dyn FnMut(Term)) {
+        let g = ctx.g;
         match self {
             Path::Predicate(p) => {
                 if inverse {
                     for s in g.subjects_for_predicate_object(p, node) {
-                        emit(s.into_owned().into());
+                        let s: Term = s.into_owned().into();
+                        (ctx.trace)(Step {
+                            subject: &s,
+                            predicate: p,
+                            object: node,
+                            inverse,
+                        });
+                        emit(s);
                     }
                 } else if let Some(s) = as_subject(node) {
                     for o in g.objects_for_subject_predicate(s, p) {
-                        emit(o.into_owned());
+                        let o = o.into_owned();
+                        (ctx.trace)(Step {
+                            subject: node,
+                            predicate: p,
+                            object: &o,
+                            inverse,
+                        });
+                        emit(o);
                     }
                 }
             }
-            Path::Inverse(p) => p.step(g, node, !inverse, emit),
+            Path::Inverse(p) => p.step(ctx, node, !inverse, emit),
             Path::Sequence(items) => {
                 let mut current = vec![node.clone()];
                 let ordered: Box<dyn Iterator<Item = &Path>> = if inverse {
@@ -113,7 +167,7 @@ impl Path {
                     let mut next = Vec::new();
                     let mut seen = HashSet::new();
                     for n in &current {
-                        p.step(g, n, inverse, &mut |t| {
+                        p.step(ctx, n, inverse, &mut |t| {
                             if seen.insert(t.clone()) {
                                 next.push(t);
                             }
@@ -125,21 +179,21 @@ impl Path {
             }
             Path::Alternative(items) => {
                 for p in items {
-                    p.step(g, node, inverse, emit);
+                    p.step(ctx, node, inverse, emit);
                 }
             }
-            Path::ZeroOrMore(p) => Self::closure(p, g, node, inverse, true, emit),
-            Path::OneOrMore(p) => Self::closure(p, g, node, inverse, false, emit),
+            Path::ZeroOrMore(p) => Self::closure(p, ctx, node, inverse, true, emit),
+            Path::OneOrMore(p) => Self::closure(p, ctx, node, inverse, false, emit),
             Path::ZeroOrOne(p) => {
                 emit(node.clone());
-                p.step(g, node, inverse, emit);
+                p.step(ctx, node, inverse, emit);
             }
         }
     }
 
     fn closure(
         p: &Path,
-        g: &Graph,
+        ctx: &mut Ctx<'_, '_>,
         node: &Term,
         inverse: bool,
         reflexive: bool,
@@ -151,13 +205,13 @@ impl Path {
             seen.insert(node.clone());
             emit(node.clone());
         }
-        p.step(g, node, inverse, &mut |t| queue.push(t));
+        p.step(ctx, node, inverse, &mut |t| queue.push(t));
         while let Some(t) = queue.pop() {
             if !seen.insert(t.clone()) {
                 continue;
             }
             emit(t.clone());
-            p.step(g, &t, inverse, &mut |n| queue.push(n));
+            p.step(ctx, &t, inverse, &mut |n| queue.push(n));
         }
     }
 

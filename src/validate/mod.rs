@@ -4,6 +4,7 @@
 //! `sh:ValidationReport` graph, so the rest of shacl-report treats it like a
 //! report from any other validator.
 
+pub mod coverage;
 mod path;
 mod sparql;
 mod turtle;

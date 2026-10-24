@@ -29,6 +29,7 @@ fn inputs(report: &str, data: bool, shapes: bool) -> ReportInputs {
         },
         format: None,
         prefixes: Vec::new(),
+        coverage: Default::default(),
     }
 }
 
@@ -214,6 +215,7 @@ fn advanced(report: bool) -> shacl_report::report::Report {
         shapes: vec![fixtures("shapes-advanced.ttl")],
         format: None,
         prefixes: Vec::new(),
+        coverage: Default::default(),
     })
     .unwrap()
 }
@@ -382,6 +384,7 @@ fn validates_from_the_cli_and_saves_the_report() {
         shapes: vec![fixtures("shapes-advanced.ttl")],
         format: None,
         prefixes: Vec::new(),
+        coverage: Default::default(),
     })
     .unwrap();
     let generated = load_report(&ReportInputs {
@@ -390,6 +393,7 @@ fn validates_from_the_cli_and_saves_the_report() {
         shapes: vec![fixtures("shapes-advanced.ttl")],
         format: None,
         prefixes: Vec::new(),
+        coverage: Default::default(),
     })
     .unwrap();
     assert_eq!(result_keys(&reloaded), result_keys(&generated));
@@ -436,6 +440,7 @@ fn opens_a_report_given_as_data_as_the_report() {
         shapes: vec![fixtures("shapes.ttl")],
         format: None,
         prefixes: Vec::new(),
+        coverage: Default::default(),
     })
     .unwrap();
     assert_eq!(r.stats.total, 11);

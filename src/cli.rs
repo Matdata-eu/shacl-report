@@ -82,6 +82,48 @@ pub struct Args {
     #[arg(long = "endpoint", value_name = "URL")]
     pub endpoint: Option<String>,
 
+    /// Print the rule coverage per class and property, and the rules that
+    /// match nothing. Needs --data and --shapes; a one-line summary is
+    /// always printed when both are given.
+    #[arg(long, help_heading = "Coverage")]
+    pub coverage: bool,
+
+    /// Write the coverage report to FILE: JSON, or CSV when FILE ends in .csv.
+    #[arg(
+        long = "coverage-report",
+        value_name = "FILE",
+        help_heading = "Coverage"
+    )]
+    pub coverage_report: Option<std::path::PathBuf>,
+
+    /// Exit with code 1 when less than PCT percent of the property values
+    /// (triples) are checked by a rule.
+    #[arg(long = "coverage-min", value_name = "PCT", help_heading = "Coverage")]
+    pub coverage_min: Option<f64>,
+
+    /// Exit with code 1 when less than PCT percent of the resources are
+    /// targeted or reached by a shape.
+    #[arg(
+        long = "coverage-min-resources",
+        value_name = "PCT",
+        help_heading = "Coverage"
+    )]
+    pub coverage_min_resources: Option<f64>,
+
+    /// Leave a class or property out of the coverage (an IRI or prefixed
+    /// name). Can be repeated.
+    #[arg(
+        long = "coverage-ignore",
+        value_name = "IRI",
+        help_heading = "Coverage"
+    )]
+    pub coverage_ignore: Vec<String>,
+
+    /// Leave labels, comments and other annotation properties (rdfs:label,
+    /// rdfs:comment, skos:prefLabel, dct:…) out of the coverage.
+    #[arg(long = "coverage-ignore-annotations", help_heading = "Coverage")]
+    pub coverage_ignore_annotations: bool,
+
     /// Open the report in the local web viewer.
     #[arg(long)]
     pub view: bool,

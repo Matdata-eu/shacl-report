@@ -37,6 +37,7 @@ pub mod sh {
         TARGET_CLASS = "targetClass",
         TARGET_SUBJECTS_OF = "targetSubjectsOf",
         TARGET_OBJECTS_OF = "targetObjectsOf",
+        TARGET = "target",
         CLASS = "class",
         DATATYPE = "datatype",
         NODE_KIND = "nodeKind",
