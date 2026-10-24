@@ -1,0 +1,237 @@
+# Demo: a small railway network, checked with SHACL Core and SHACL-SPARQL.
+#
+# Besides the usual SHACL Core constraints, these shapes use nested shapes
+# (sh:node), exactly-one-of (sh:xone), qualified value shapes,
+# a SPARQL constraint (sh:sparql) and a custom SPARQL-based constraint
+# component (rail:unique). The vocabulary is made up for the demo; it is
+# loosely modelled on the EU Register of Infrastructure (RINF).
+
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rail: <https://example.org/rail#> .
+
+# Prefixes for the SPARQL queries below.
+rail:
+    a owl:Ontology ;
+    sh:declare [ sh:prefix "rail" ; sh:namespace "https://example.org/rail#"^^xsd:anyURI ] .
+
+rail:OperationalPointShape
+    a sh:NodeShape ;
+    rdfs:label "Operational point" ;
+    sh:description "A station, junction or border point where trains can start, stop or change route." ;
+    sh:targetClass rail:OperationalPoint ;
+    sh:property [
+        sh:path rail:uopid ;
+        sh:name "unique OP ID" ;
+        sh:order 1 ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:pattern "^[A-Z]{2}[0-9]{5}$" ;
+        sh:message "A unique OP ID is a country code followed by 5 digits, e.g. BE00125"@en ;
+        rail:unique true ;
+    ] ;
+    sh:property [
+        sh:path rail:name ;
+        sh:name "name" ;
+        sh:order 2 ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+    ] ;
+    sh:property [
+        sh:path rail:country ;
+        sh:name "country" ;
+        sh:order 3 ;
+        sh:minCount 1 ;
+        sh:in ( "BE" "NL" "LU" "FR" "DE" ) ;
+    ] ;
+    sh:property [
+        sh:path rail:opType ;
+        sh:name "type" ;
+        sh:order 4 ;
+        sh:minCount 1 ;
+        sh:in ( rail:Station rail:Junction rail:BorderPoint rail:Halt ) ;
+        sh:severity sh:Warning ;
+    ] ;
+    sh:property [
+        sh:path rail:location ;
+        sh:name "location" ;
+        sh:order 5 ;
+        sh:maxCount 1 ;
+        sh:node rail:LocationShape ;
+    ] .
+
+rail:LocationShape
+    a sh:NodeShape ;
+    rdfs:label "Location" ;
+    sh:description "WGS 84 coordinates in decimal degrees, somewhere in Europe." ;
+    sh:property [
+        sh:path rail:lat ;
+        sh:name "latitude" ;
+        sh:minCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 34 ;
+        sh:maxInclusive 72 ;
+    ] ;
+    sh:property [
+        sh:path rail:long ;
+        sh:name "longitude" ;
+        sh:minCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive -25 ;
+        sh:maxInclusive 45 ;
+    ] .
+
+rail:SectionOfLineShape
+    a sh:NodeShape ;
+    rdfs:label "Section of line" ;
+    sh:description "The line between two adjacent operational points, with its tracks." ;
+    sh:targetClass rail:SectionOfLine ;
+    sh:property [
+        sh:path rail:start ;
+        sh:name "start" ;
+        sh:order 1 ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class rail:OperationalPoint ;
+    ] ;
+    sh:property [
+        sh:path rail:end ;
+        sh:name "end" ;
+        sh:order 2 ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class rail:OperationalPoint ;
+    ] ;
+    sh:property [
+        sh:path rail:length ;
+        sh:name "length (km)" ;
+        sh:order 3 ;
+        sh:minCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minExclusive 0 ;
+    ] ;
+    sh:property [
+        sh:path rail:track ;
+        sh:name "running track" ;
+        sh:order 4 ;
+        sh:qualifiedValueShape [ sh:class rail:RunningTrack ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "A section of line needs at least one running track"@en ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Starts and ends at {?value}" ;
+        sh:prefixes rail: ;
+        sh:select """
+            SELECT $this (rail:end AS ?path) ?value
+            WHERE {
+                $this rail:start ?value ;
+                      rail:end ?value .
+            }
+            """ ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Has track {?value}, which also belongs to another section of line" ;
+        sh:prefixes rail: ;
+        sh:severity sh:Warning ;
+        sh:select """
+            SELECT DISTINCT $this (rail:track AS ?path) ?value
+            WHERE {
+                $this rail:track ?value .
+                ?other rail:track ?value .
+                FILTER (?other != $this)
+            }
+            """ ;
+    ] .
+
+rail:TrackShape
+    a sh:NodeShape ;
+    rdfs:label "Track" ;
+    sh:description "A running track or a siding." ;
+    sh:targetClass rail:RunningTrack, rail:Siding ;
+    sh:property [
+        sh:path rail:trackId ;
+        sh:name "track ID" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path rail:gauge ;
+        sh:name "gauge (mm)" ;
+        sh:minCount 1 ;
+        sh:in ( 1435 1668 1000 ) ;
+    ] ;
+    sh:property [
+        sh:path rail:maxSpeed ;
+        sh:name "maximum speed (km/h)" ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 10 ;
+        sh:maxInclusive 350 ;
+    ] ;
+    sh:property [
+        sh:path rail:electrified ;
+        sh:name "electrified" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:boolean ;
+    ] ;
+    sh:property [
+        sh:path rail:voltage ;
+        sh:name "voltage (V)" ;
+        sh:in ( 1500 3000 15000 25000 ) ;
+    ] .
+
+rail:ElectrificationShape
+    a sh:NodeShape ;
+    rdfs:label "Electrification" ;
+    sh:description "An electrified track needs a contact line voltage; a track that is not electrified must not have one." ;
+    sh:targetClass rail:RunningTrack, rail:Siding ;
+    sh:xone (
+        [
+            sh:property [ sh:path rail:electrified ; sh:hasValue true ] ;
+            sh:property [ sh:path rail:voltage ; sh:minCount 1 ] ;
+        ]
+        [
+            sh:property [ sh:path rail:electrified ; sh:hasValue false ] ;
+            sh:property [ sh:path rail:voltage ; sh:maxCount 0 ] ;
+        ]
+    ) ;
+    sh:message "Electrified, but no voltage; or a voltage on a track that is not electrified"@en .
+
+rail:SidingShape
+    a sh:NodeShape ;
+    rdfs:label "Siding" ;
+    sh:description "Sidings are for shunting and stabling trains, at low speed." ;
+    sh:targetClass rail:Siding ;
+    sh:property [
+        sh:path rail:maxSpeed ;
+        sh:name "maximum speed (km/h)" ;
+        sh:maxInclusive 40 ;
+        sh:severity sh:Warning ;
+    ] .
+
+# A custom SPARQL-based constraint component: no two resources may share a
+# value of the property, e.g. an identifier.
+rail:UniqueConstraintComponent
+    a sh:ConstraintComponent ;
+    rdfs:label "Unique value" ;
+    sh:parameter [ sh:path rail:unique ; sh:datatype xsd:boolean ] ;
+    sh:propertyValidator [
+        a sh:SPARQLSelectValidator ;
+        sh:message "{?value} is also used by {?other}" ;
+        sh:prefixes rail: ;
+        sh:select """
+            SELECT DISTINCT $this ?value ?other
+            WHERE {
+                FILTER ($unique)
+                $this $PATH ?value .
+                ?other $PATH ?value .
+                FILTER (?other != $this)
+            }
+            """ ;
+    ] .
