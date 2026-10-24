@@ -1,0 +1,55 @@
+@prefix sh:     <http://www.w3.org/ns/shacl#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix schema: <http://schema.org/> .
+@prefix shop:   <http://example.org/shop#> .
+
+# A small product catalogue whose shapes check every property: 100 %
+# coverage. data-new-field.ttl adds a property nobody wrote a rule for, so a
+# CI run with --coverage-min 100 fails on it.
+
+shop:ProductShape a sh:NodeShape ;
+    sh:targetClass schema:Product ;
+    sh:property [
+        sh:path schema:sku ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:pattern "^SKU-[0-9]{5}$" ;
+    ] ;
+    sh:property [
+        sh:path schema:name ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:maxLength 120 ;
+    ] ;
+    sh:property [
+        sh:path schema:category ;
+        sh:in ( shop:Books shop:Games shop:Garden ) ;
+    ] ;
+    sh:property [
+        sh:path schema:offers ;
+        sh:minCount 1 ;
+        sh:node shop:OfferShape ;
+    ] .
+
+shop:OfferShape a sh:NodeShape ;
+    sh:closed true ;
+    sh:ignoredProperties ( <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ) ;
+    sh:property [
+        sh:path schema:price ;
+        sh:minCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minExclusive 0 ;
+    ] ;
+    sh:property [
+        sh:path schema:priceCurrency ;
+        sh:hasValue "EUR" ;
+    ] ;
+    sh:property [
+        sh:path schema:validFrom ;
+        sh:datatype xsd:date ;
+        sh:lessThan schema:validThrough ;
+    ] ;
+    sh:property [
+        sh:path schema:validThrough ;
+        sh:datatype xsd:date ;
+    ] .

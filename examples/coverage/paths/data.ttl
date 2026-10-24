@@ -1,0 +1,82 @@
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:  <http://example.org/org#> .
+@prefix o:   <http://example.org/org/id/> .
+
+o:acme a ex:Company ;
+    ex:name "ACME" ;
+    ex:founded "1998"^^xsd:gYear .
+
+o:rnd a ex:Department ;
+    ex:label "Research"@en , "Onderzoek"@nl ;
+    ex:partOf o:engineering ;
+    ex:site ex:Ghent ;
+    ex:costCentre "CC-100" .
+
+o:engineering a ex:Department ;
+    ex:label "Engineering"@en ;
+    ex:partOf o:acme ;
+    ex:site ex:Brussels ;
+    ex:costCentre "CC-010" .
+
+o:sales a ex:Department ;
+    ex:label "Sales"@en ;
+    ex:partOf o:acme ;
+    ex:site ex:Antwerp ;
+    ex:costCentre "CC-200" .
+
+o:ceo a ex:Employee ;
+    ex:name "Ada" ;
+    ex:memberOf o:engineering ;
+    ex:mobile "+32 470 00 00 01" ;
+    ex:email "ada@acme.example" ;
+    ex:heads o:engineering ;
+    ex:hobby "sailing" .
+
+o:bob a ex:Employee ;
+    ex:name "Bob" ;
+    ex:memberOf o:rnd ;
+    ex:phone "+32 9 123 45 67" ;
+    ex:email "bob@acme.example" ;
+    ex:reportsTo o:ceo ;
+    ex:heads o:rnd ;
+    ex:deputy o:carol .
+
+o:carol a ex:Employee ;
+    ex:name "Carol" ;
+    ex:memberOf o:rnd ;
+    ex:mobile "+32 471 11 11 11" ;
+    ex:postalAddress "Kerkstraat 1, Gent" ;
+    ex:reportsTo o:bob .
+
+o:dan a ex:Employee ;
+    ex:name "Dan" ;
+    ex:memberOf o:sales ;
+    ex:phone "+32 3 765 43 21" ;
+    ex:email "dan@acme.example" ;
+    ex:reportsTo o:ceo ;
+    ex:heads o:sales ;
+    ex:carPlate "1-XYZ-123" .
+
+o:erin a ex:Employee ;
+    ex:name "Erin" ;
+    ex:memberOf o:sales ;
+    ex:mobile "+32 472 22 22 22" ;
+    ex:email "erin@acme.example" ;
+    ex:reportsTo o:dan .
+
+o:website a ex:Project ;
+    ex:budget 125000.00 ;
+    ex:owner o:dan ;
+    ex:milestone [ ex:due "2026-12-01"^^xsd:date ; ex:note "Launch" ] ,
+                 [ ex:due "2027-03-01"^^xsd:date ; ex:note "Retrospective" ] ;
+    ex:steps ( o:step1 o:step2 o:step3 ) ;
+    ex:subProjectOf ex:root .
+
+o:step1 ex:title "Design" ; ex:effort 10 .
+o:step2 ex:title "Build" ; ex:effort 40 .
+o:step3 ex:title "Ship" ; ex:effort 5 .
+
+# Not a project in the data (no ex:budget), so not targeted.
+o:intranet a ex:Project ;
+    ex:owner o:bob ;
+    ex:milestone [ ex:due "2027-01-15"^^xsd:date ] .

@@ -99,6 +99,24 @@ node's own triples next to each result.
 
   In the local viewer, queries can be relayed through `shacl-report` so
   endpoints that do not send CORS headers work too.
+- **Rule coverage** (`--data` and `--shapes`): which data no rule checks.
+  - per class, the resources a shape targets, the resources a shape reaches
+    through a nested shape (`sh:node`, `sh:property`, `sh:qualifiedValueShape`,
+    logical constraints), and the resources nothing checks;
+  - per class and property, the share of values that a constrained property
+    shape's path walks (sequence, inverse, alternative and closure paths
+    included), broken down by rule category (cardinality, value type, range,
+    text, allowed values, comparison, nested shape, logic, SPARQL);
+  - rules that match nothing: shapes without focus nodes, and property shapes
+    whose path has no values, with a likely typo (`ex:adress` → `ex:address`);
+  - a hint when a shape could check a class through an `rdfs:subClassOf`
+    triple that is only in the shapes graph;
+  - in the viewer, a Coverage tab with a class tree, a class × category
+    matrix, and a starter shape for every gap;
+  - `--coverage-min` fails a CI run when coverage drops, e.g. when the data
+    gains a property nobody wrote a rule for.
+
+  See [Rule coverage](#rule-coverage) for how it is counted.
 - **Files or URLs**: the report, shapes and data can be local files or
   `http(s)` URLs (content negotiation picks an RDF format).
 - **Self-contained HTML report** (`--html report.html`): the same viewer with
@@ -229,6 +247,12 @@ endpoint must allow CORS.
     path: shacl-report.html
 ```
 
+To fail the build when a new property or class has no rule:
+
+```yaml
+- run: shacl-report --shapes shapes.ttl --data data.ttl --coverage --coverage-min 100 --coverage-report coverage.json
+```
+
 ### Docker
 
 The image `ghcr.io/matdata-eu/shacl-report` holds only the binary
@@ -339,6 +363,12 @@ answers `ok` for load balancers.
 | `--ci` | Exit with code 1 when results at or above `--fail-on` exist. |
 | `--fail-on <SEV>` | `violation` (default), `warning` or `info`. |
 | `--endpoint <URL>` | SPARQL endpoint holding the data, preset in the viewer's SPARQL tab. |
+| `--coverage` | Print the rule coverage per class and property, and the rules that match nothing. |
+| `--coverage-report <FILE>` | Write the coverage as JSON, or as CSV (one row per class and property) for a `.csv` file. |
+| `--coverage-min <PCT>` | Exit with code 1 when less than PCT % of the property values are checked. |
+| `--coverage-min-resources <PCT>` | Exit with code 1 when less than PCT % of the resources are covered. |
+| `--coverage-ignore <IRI>` | Leave a class or predicate out of the coverage (full IRI, `<iri>` or prefixed name). Repeatable. |
+| `--coverage-ignore-annotations` | Leave labels, comments and other annotation properties out of the coverage. |
 | `--quiet` | Suppress the summary on stderr. |
 | `--view` | Open the report in the local web viewer. |
 | `--no-open` | Do not auto-open the system browser (implies `--view`). |
@@ -382,7 +412,7 @@ can also be set through the environment.
 | Code | Meaning |
 | --- | --- |
 | `0` | Success (or, without `--ci`, completed even if results exist). |
-| `1` | `--ci` was set and results at or above `--fail-on` were found. |
+| `1` | `--ci` was set and results at or above `--fail-on` were found, or coverage is below `--coverage-min` / `--coverage-min-resources`. |
 | `2` | Error (I/O, parse, no report found, etc.). |
 
 ### Prefixes
@@ -414,6 +444,39 @@ quietly uses the copy in `assets/prefixes.json`. Set `SHACL_REPORT_OFFLINE=1`
 to skip the download. Cargo does not let a build change the source tree, so
 refresh the committed copy now and then with
 `curl -fsSL https://prefix.cc/popular/all.file.json -o assets/prefixes.json`.
+
+## Rule coverage
+
+Coverage needs the data and the shapes. It follows SHACL strictly: it uses
+the same targets as validation, so subclasses count only through
+`rdfs:subClassOf` triples in the data graph. To include inferred types,
+give the inferred data.
+
+- **Resources** are grouped by their asserted `rdf:type`. A resource with
+  several types counts in every class. Untyped blank nodes are grouped by the
+  property and class that point to them (*ex:Person › ex:address*), and the
+  remaining untyped resources under *(no type)*.
+- **A resource is covered** when a shape targets it, or when a shape is applied
+  to it as a value of another shape (`sh:node`, `sh:property` on a property
+  shape, `sh:qualifiedValueShape`, `sh:and`/`sh:or`/`sh:xone`/`sh:not`).
+  Deactivated shapes do not count.
+- **A triple is covered** when the path of a property shape with at least one
+  constraint walks it: the intermediate steps of a sequence path and the
+  triples behind an inverse path count too. A property shape with no
+  constraints (only `sh:name`, say) checks nothing and covers nothing.
+  `sh:closed` covers the resource, not its triples. For `sh:sparql`
+  constraints on a node shape, the predicates in `$this <predicate>` patterns
+  of the query count as covered.
+- **Left out**: `rdf:type` triples (unless a path uses `rdf:type`), RDF list
+  cells, the ontology and any shapes in the data (OWL, RDFS and SHACL
+  resources), triples that are also in the shapes graph, and what
+  `--coverage-ignore` names. `--coverage-ignore-annotations` (or the switch in
+  the viewer) also leaves out labels and comments.
+- **Not evaluated**: SPARQL-based targets (`sh:target`), reported under rules
+  that match nothing.
+
+[`examples/coverage`](examples/coverage) has four demo sets, from a fully
+covered webshop to an organisation chart that uses every kind of path.
 
 ## How it works
 

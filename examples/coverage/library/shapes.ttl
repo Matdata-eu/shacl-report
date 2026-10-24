@@ -1,0 +1,132 @@
+@prefix sh:     <http://www.w3.org/ns/shacl#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix dct:    <http://purl.org/dc/terms/> .
+@prefix schema: <http://schema.org/> .
+@prefix lib:    <http://example.org/library#> .
+
+# A library catalogue. The data file also holds the ontology (classes,
+# properties, subclass triples), which the coverage report leaves out.
+# Shows: multi-typed resources, every kind of target, a SPARQL-based target
+# that is not evaluated, a deactivated shape, a custom SPARQL constraint
+# component, SKOS concepts and annotations.
+
+lib: sh:declare [ sh:prefix "lib" ; sh:namespace "http://example.org/library#"^^xsd:anyURI ] .
+
+lib:BookShape a sh:NodeShape ;
+    sh:targetClass lib:Book ;
+    sh:property [
+        sh:path dct:title ;
+        sh:minCount 1 ;
+        sh:uniqueLang true ;
+    ] ;
+    sh:property [
+        sh:path lib:isbn ;
+        sh:maxCount 1 ;
+        lib:isbnCheck true ;
+    ] ;
+    sh:property [
+        sh:path lib:subject ;
+        sh:class skos:Concept ;
+    ] ;
+    sh:property [
+        sh:path lib:pages ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 1 ;
+    ] .
+
+# lib:Ebook rdfs:subClassOf lib:Book is in the data, so ebooks are books.
+lib:EbookShape a sh:NodeShape ;
+    sh:targetClass lib:Ebook ;
+    sh:property [
+        sh:path lib:fileFormat ;
+        sh:in ( "EPUB" "PDF" ) ;
+    ] .
+
+# schema:CreativeWork is the second type of every book. A resource typed
+# with both classes is counted under both.
+lib:CreativeWorkShape a sh:NodeShape ;
+    sh:targetClass schema:CreativeWork ;
+    sh:property [
+        sh:path schema:inLanguage ;
+        sh:languageIn ( "en" "nl" "fr" ) ;
+        sh:pattern "^[a-z]{2}$" ;
+    ] .
+
+# Everything that has a lender is a loan: sh:targetSubjectsOf.
+lib:LoanShape a sh:NodeShape ;
+    sh:targetSubjectsOf lib:lender ;
+    sh:property [
+        sh:path lib:lender ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class lib:Member ;
+    ] ;
+    sh:property [
+        sh:path lib:dueDate ;
+        sh:datatype xsd:date ;
+    ] ;
+    sh:property [
+        sh:path lib:returnedOn ;
+        sh:lessThanOrEquals lib:dueDate ;
+    ] .
+
+# Whatever a loan is about must be a book: sh:targetObjectsOf.
+lib:LoanItemShape a sh:NodeShape ;
+    sh:targetObjectsOf lib:item ;
+    sh:class lib:Book .
+
+# Two named resources checked on their own: sh:targetNode.
+lib:MainBranchShape a sh:NodeShape ;
+    sh:targetNode <http://example.org/library/id/mainBranch> , <http://example.org/library/id/northBranch> ;
+    sh:property [
+        sh:path lib:openingHours ;
+        sh:minCount 1 ;
+    ] .
+
+lib:ConceptShape a sh:NodeShape ;
+    sh:targetClass skos:Concept ;
+    sh:property [
+        sh:path skos:prefLabel ;
+        sh:minCount 1 ;
+        sh:uniqueLang true ;
+    ] ;
+    sh:property [
+        sh:path skos:broader ;
+        sh:class skos:Concept ;
+    ] .
+
+# Turned off: members are not checked.
+lib:MemberShape a sh:NodeShape ;
+    sh:targetClass lib:Member ;
+    sh:deactivated true ;
+    sh:property [ sh:path lib:cardNumber ; sh:minCount 1 ] .
+
+# A SPARQL-based target (SHACL-AF): not evaluated by shacl-report.
+lib:OverdueShape a sh:NodeShape ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:prefixes lib: ;
+        sh:select """
+            SELECT ?this WHERE {
+                ?this lib:dueDate ?due .
+                FILTER NOT EXISTS { ?this lib:returnedOn ?r }
+                FILTER (?due < NOW())
+            }""" ;
+    ] ;
+    sh:property [ sh:path lib:reminderSent ; sh:datatype xsd:boolean ] .
+
+# A custom constraint component: a valid ISBN-13 has 13 digits.
+lib:IsbnComponent a sh:ConstraintComponent ;
+    sh:parameter [ sh:path lib:isbnCheck ; sh:datatype xsd:boolean ] ;
+    sh:propertyValidator [
+        a sh:SPARQLSelectValidator ;
+        sh:message "ISBN must have 13 digits" ;
+        sh:prefixes lib: ;
+        sh:select """
+            SELECT $this ?value WHERE {
+                $this $PATH ?value .
+                FILTER (!REGEX(STR(?value), "^[0-9]{13}$"))
+            }""" ;
+    ] .
