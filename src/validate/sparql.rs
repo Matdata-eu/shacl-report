@@ -714,7 +714,32 @@ pub(crate) fn components(g: &Graph) -> Result<Vec<Rc<Component>>> {
     Ok(out)
 }
 
+impl SparqlConstraint {
+    /// The SELECT query and its `sh:prefixes` declarations.
+    pub fn query(&self) -> (&str, &[(String, String)]) {
+        (&self.select, &self.prefixes)
+    }
+}
+
 impl Component {
+    /// The queries of the component's validators, with their prefixes.
+    pub fn queries(&self) -> Vec<(&str, &[(String, String)])> {
+        [
+            &self.validator,
+            &self.node_validator,
+            &self.property_validator,
+        ]
+        .into_iter()
+        .flatten()
+        .map(|v| {
+            let q = match &v.kind {
+                Kind::Select(q) | Kind::Ask(q) => q.as_str(),
+            };
+            (q, v.prefixes.as_slice())
+        })
+        .collect()
+    }
+
     /// Parameter bindings for each constraint this component has on `shape`
     /// (one per combination of parameter values).
     pub fn bindings(&self, g: &Graph, shape: &Term) -> Vec<Vec<(String, Term)>> {

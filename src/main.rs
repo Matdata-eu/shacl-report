@@ -1,6 +1,7 @@
 use clap::Parser;
 use shacl_report::cli::{Args, Cli, Command, FailOn, ServeArgs};
-use shacl_report::report::{Report, ReportInputs, load_report};
+use shacl_report::report::{CoverageSettings, Report, ReportInputs, load_report};
+use shacl_report::validate::coverage::{Coverage, percent};
 use shacl_report::web::{self, Preload, export};
 use std::collections::HashMap;
 use std::process::ExitCode;
@@ -29,6 +30,10 @@ fn main() -> ExitCode {
         shapes: args.shapes.clone(),
         format: args.format,
         prefixes: args.prefixes.clone(),
+        coverage: CoverageSettings {
+            ignore: args.coverage_ignore.clone(),
+            ignore_annotations: args.coverage_ignore_annotations,
+        },
     };
     let mut report = match load_report(&inputs) {
         Ok(r) => r,
@@ -69,7 +74,69 @@ fn main() -> ExitCode {
             eprintln!("html report written to {}", path.display());
         }
     }
-    let failed = args.ci && report.fails_at(threshold(args.fail_on));
+    let wants_coverage = args.coverage
+        || args.coverage_report.is_some()
+        || args.coverage_min.is_some()
+        || args.coverage_min_resources.is_some();
+    let mut coverage_failed = false;
+    if wants_coverage {
+        let Some(cov) = &report.coverage else {
+            eprintln!(
+                "shacl-report: error: coverage needs --data and --shapes{}",
+                report
+                    .coverage_error
+                    .as_ref()
+                    .map(|e| format!(" ({e})"))
+                    .unwrap_or_default()
+            );
+            return ExitCode::from(2);
+        };
+        let below: Vec<String> = [
+            (args.coverage_min, cov.triple_percent(), "property values"),
+            (
+                args.coverage_min_resources,
+                cov.resource_percent(),
+                "resources",
+            ),
+        ]
+        .into_iter()
+        .filter_map(|(min, got, what)| {
+            let min = min.filter(|min| got < *min)?;
+            Some(format!(
+                "coverage of {what} is {got:.1}%, below the minimum of {min}%"
+            ))
+        })
+        .collect();
+        coverage_failed = !below.is_empty();
+        // A failed minimum shows where the gaps are, so CI logs explain it.
+        if (args.coverage || coverage_failed) && !args.quiet {
+            print_coverage(cov, &report);
+        }
+        if let Some(path) = &args.coverage_report {
+            let csv = path
+                .extension()
+                .is_some_and(|e| e.eq_ignore_ascii_case("csv"));
+            let body = if csv {
+                coverage_csv(cov)
+            } else {
+                serde_json::to_string_pretty(cov).unwrap_or_default()
+            };
+            if let Err(err) = std::fs::write(path, body) {
+                eprintln!(
+                    "shacl-report: error: cannot write {}: {err}",
+                    path.display()
+                );
+                return ExitCode::from(2);
+            }
+            if !args.quiet {
+                eprintln!("coverage report written to {}", path.display());
+            }
+        }
+        for line in below {
+            eprintln!("{line}");
+        }
+    }
+    let failed = (args.ci && report.fails_at(threshold(args.fail_on))) || coverage_failed;
     if (args.view || args.no_open)
         && let Err(err) = view(&args, report)
     {
@@ -109,6 +176,7 @@ fn run_serve(s: ServeArgs) -> ExitCode {
             shapes: s.shapes,
             format: s.format,
             prefixes: s.prefixes,
+            ..Default::default()
         })
     } else {
         Preload::None
@@ -124,7 +192,178 @@ fn run_serve(s: ServeArgs) -> ExitCode {
     ExitCode::SUCCESS
 }
 
+/// Coverage per class and property as CSV, one row per class and one per
+/// class › property.
+fn coverage_csv(c: &Coverage) -> String {
+    let field = |s: &str| {
+        if s.contains([',', '"', '\n']) {
+            format!("\"{}\"", s.replace('"', "\"\""))
+        } else {
+            s.to_string()
+        }
+    };
+    let mut out =
+        String::from("class,property,resources,targeted,reached,uncovered,triples,covered,percent");
+    for cat in &c.categories {
+        out.push(',');
+        out.push_str(cat.key);
+    }
+    out.push('\n');
+    for row in &c.classes {
+        let triples: usize = row.properties.iter().map(|p| p.triples).sum();
+        let covered: usize = row.properties.iter().map(|p| p.covered).sum();
+        out.push_str(&format!(
+            "{},,{},{},{},{},{triples},{covered},{:.1}",
+            field(&row.key),
+            row.resources,
+            row.targeted,
+            row.reached,
+            row.uncovered,
+            percent(covered, triples)
+        ));
+        for i in 0..c.categories.len() {
+            let n: usize = row.properties.iter().map(|p| p.categories[i]).sum();
+            out.push_str(&format!(",{n}"));
+        }
+        out.push('\n');
+        for p in &row.properties {
+            out.push_str(&format!(
+                "{},{},{},,,,{},{},{:.1}",
+                field(&row.key),
+                field(&p.iri),
+                p.resources,
+                p.triples,
+                p.covered,
+                percent(p.covered, p.triples)
+            ));
+            for n in &p.categories {
+                out.push_str(&format!(",{n}"));
+            }
+            out.push('\n');
+        }
+    }
+    out
+}
+
+fn class_name(
+    row: &shacl_report::validate::coverage::ClassCoverage,
+    prefixes: &[(String, String)],
+) -> String {
+    match (&row.iri, &row.via) {
+        (Some(iri), _) => shorten(&format!("<{iri}>"), prefixes),
+        (None, Some(v)) => match &v.class {
+            Some(c) => shorten(
+                &format!("(blank nodes) <{c}> › <{}>", v.predicate),
+                prefixes,
+            ),
+            None => shorten(&format!("(blank nodes) › <{}>", v.predicate), prefixes),
+        },
+        (None, None) if row.kind == "untyped" => "(no type)".to_string(),
+        _ => "(blank nodes)".to_string(),
+    }
+}
+
+fn print_coverage(c: &Coverage, report: &Report) {
+    let prefixes = &report.prefixes;
+    let shape_name = |key: &str| {
+        let label = report
+            .shapes
+            .as_ref()
+            .and_then(|m| m.shapes.iter().find(|s| s.key == key))
+            .map(|s| s.label.clone())
+            .unwrap_or_else(|| key.to_string());
+        shorten(&label, prefixes)
+    };
+    let mut classes: Vec<_> = c.classes.iter().collect();
+    classes.sort_by_key(|r| {
+        std::cmp::Reverse(
+            r.properties
+                .iter()
+                .map(|p| p.triples - p.covered)
+                .sum::<usize>()
+                + r.uncovered,
+        )
+    });
+    eprintln!("coverage by class (resources covered · values checked):");
+    for row in classes.iter().take(15) {
+        let triples: usize = row.properties.iter().map(|p| p.triples).sum();
+        let covered: usize = row.properties.iter().map(|p| p.covered).sum();
+        eprintln!(
+            "  {:>5.1}% of {:>6}  · {:>5.1}% of {:>7}  {}",
+            percent(row.targeted + row.reached, row.resources),
+            row.resources,
+            percent(covered, triples),
+            triples,
+            class_name(row, prefixes)
+        );
+    }
+    if classes.len() > 15 {
+        eprintln!("  … and {} more", classes.len() - 15);
+    }
+    let mut props: Vec<(String, usize, usize)> = Vec::new();
+    for row in &c.classes {
+        for p in &row.properties {
+            if p.covered < p.triples {
+                props.push((
+                    format!(
+                        "{} › {}",
+                        class_name(row, prefixes),
+                        shorten(&format!("<{}>", p.iri), prefixes)
+                    ),
+                    p.triples - p.covered,
+                    p.triples,
+                ));
+            }
+        }
+    }
+    props.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+    if !props.is_empty() {
+        eprintln!("largest gaps (values no rule checks):");
+        for (name, gap, total) in props.iter().take(10) {
+            eprintln!("  {gap:>7} of {total:>7}  {name}");
+        }
+    }
+    for h in &c.hints {
+        eprintln!(
+            "hint: {} {} resources would be checked by {} if \"{} rdfs:subClassOf {}\" were in the data graph",
+            h.resources,
+            shorten(&format!("<{}>", h.class), prefixes),
+            shape_name(&h.shape),
+            shorten(&format!("<{}>", h.class), prefixes),
+            shorten(&format!("<{}>", h.superclass), prefixes),
+        );
+    }
+    for u in &c.unused {
+        let what = match u.kind {
+            "no-focus" => "matches no focus node",
+            "no-values" => "path never has a value",
+            _ => "has SPARQL-based targets, which are not evaluated",
+        };
+        let hint = u
+            .suggestion
+            .as_ref()
+            .map(|s| format!(" (did you mean {}?)", shorten(&format!("<{s}>"), prefixes)))
+            .unwrap_or_default();
+        eprintln!("unused rule: {} {what}{hint}", shape_name(&u.shape));
+    }
+}
+
 fn print_summary(r: &Report) {
+    if let Some(c) = &r.coverage {
+        let t = &c.totals;
+        eprintln!(
+            "coverage: resources={:.1}% ({} of {}: targeted={} reached={})  values={:.1}% ({} of {})  unused-rules={}",
+            c.resource_percent(),
+            t.targeted + t.reached,
+            t.resources,
+            t.targeted,
+            t.reached,
+            c.triple_percent(),
+            t.covered,
+            t.triples,
+            c.unused.len()
+        );
+    }
     if let Some(m) = &r.shapes {
         let props = m.shapes.iter().filter(|s| s.kind == "property").count();
         let sparql: usize = m.shapes.iter().map(|s| s.sparql.len()).sum();

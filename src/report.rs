@@ -7,6 +7,7 @@
 use crate::cli::InputFormat;
 use crate::input::{LoadLimits, MemoryFile, load_graph, load_graph_from_memory_limited};
 use crate::shapes::ShapesModel;
+use crate::validate::coverage::{Coverage, CoverageOptions};
 use anyhow::{Context, Result, bail};
 use oxrdf::vocab::{rdf, rdfs};
 use oxrdf::{Graph, NamedNodeRef, NamedOrBlankNodeRef, TermRef};
@@ -63,6 +64,15 @@ pub struct ReportInputs {
     pub format: Option<InputFormat>,
     /// Files that only contribute prefixes (SHACL `sh:declare` or `@prefix`).
     pub prefixes: Vec<PathBuf>,
+    pub coverage: CoverageSettings,
+}
+
+/// What the coverage report leaves out, as given on the command line.
+#[derive(Debug, Clone, Default)]
+pub struct CoverageSettings {
+    /// Classes and predicates to ignore: full IRIs, `<iri>` or prefixed names.
+    pub ignore: Vec<String>,
+    pub ignore_annotations: bool,
 }
 
 /// One RDF term, in the same shape the rdf-compare viewer uses.
@@ -78,7 +88,7 @@ pub struct TermDto {
 }
 
 impl TermDto {
-    fn from_term(t: TermRef<'_>) -> Self {
+    pub(crate) fn from_term(t: TermRef<'_>) -> Self {
         match t {
             TermRef::NamedNode(n) => Self::iri(n.as_str()),
             TermRef::BlankNode(b) => TermDto {
@@ -220,6 +230,12 @@ pub struct Report {
     /// The generated `sh:ValidationReport` as Turtle, when validated here.
     #[serde(skip)]
     pub report_turtle: Option<String>,
+    /// How much of the data the shapes look at (needs both data and shapes).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub coverage: Option<Coverage>,
+    /// Why the coverage could not be computed.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub coverage_error: Option<String>,
 }
 
 /// How the built-in validator produced the report.
@@ -288,6 +304,8 @@ pub fn load_report(inputs: &ReportInputs) -> Result<Report> {
         sources,
         prefixes,
         validated,
+        &inputs.coverage,
+        None,
     )
 }
 
@@ -365,6 +383,8 @@ pub fn load_report_from_memory_limited(
         sources,
         prefixes,
         validated,
+        &CoverageSettings::default(),
+        limits.deadline,
     )
 }
 
@@ -402,6 +422,7 @@ fn take_report_from_data(report: &mut Graph, data: &mut Graph, sources: &mut Sou
     );
 }
 
+#[allow(clippy::too_many_arguments)]
 fn finish(
     report_graph: &Graph,
     shapes_graph: &Graph,
@@ -409,6 +430,8 @@ fn finish(
     sources: Sources,
     mut prefixes: Vec<(String, String)>,
     validated: Option<(ValidationInfo, String)>,
+    settings: &CoverageSettings,
+    deadline: Option<std::time::Instant>,
 ) -> Result<Report> {
     let has_report = !sources.report.is_empty() || validated.is_some();
     if !has_report && sources.shapes.is_empty() {
@@ -432,6 +455,24 @@ fn finish(
     if report.has_shapes {
         report.shapes = Some(crate::shapes::build_shapes(shapes_graph));
     }
+    if report.has_shapes && !sources.data.is_empty() {
+        let opts = CoverageOptions {
+            ignore: settings
+                .ignore
+                .iter()
+                .map(|i| resolve_iri(i, &prefixes))
+                .collect::<Result<_>>()?,
+            ignore_annotations: settings.ignore_annotations,
+            deadline,
+        };
+        match crate::validate::coverage::coverage(data_graph, shapes_graph, &opts) {
+            Ok(c) => {
+                add_focus_context(&mut report.focus, data_graph, &c.example_nodes);
+                report.coverage = Some(c);
+            }
+            Err(e) => report.coverage_error = Some(format!("{e:#}")),
+        }
+    }
     report.sources = sources;
     if let Some((info, turtle)) = validated {
         report.validation = Some(info);
@@ -442,6 +483,51 @@ fn finish(
     }
     report.prefixes = prefixes;
     Ok(report)
+}
+
+/// An IRI given as `<iri>`, a full IRI or a prefixed name.
+fn resolve_iri(text: &str, prefixes: &[(String, String)]) -> Result<oxrdf::NamedNode> {
+    let t = text.trim();
+    let t = t
+        .strip_prefix('<')
+        .and_then(|t| t.strip_suffix('>'))
+        .unwrap_or(t);
+    if let Some((p, local)) = t.split_once(':')
+        && !local.starts_with("//")
+        && let Some((_, base)) = prefixes.iter().find(|(n, _)| n == p)
+    {
+        return Ok(oxrdf::NamedNode::new(format!("{base}{local}"))?);
+    }
+    oxrdf::NamedNode::new(t)
+        .with_context(|| format!("{text} is not an IRI or a known prefixed name"))
+}
+
+/// Add the data-graph triples of `nodes` to the focus-node context, so the
+/// viewer can show the resources the coverage report gives as examples.
+fn add_focus_context(
+    focus: &mut BTreeMap<String, Vec<ContextTriple>>,
+    data: &Graph,
+    nodes: &[oxrdf::Term],
+) {
+    for n in nodes {
+        let Some(s) = crate::validate::as_subject(n) else {
+            continue;
+        };
+        let key = TermDto::from_term(n.as_ref()).key();
+        if focus.contains_key(&key) {
+            continue;
+        }
+        let mut triples: Vec<ContextTriple> = data
+            .triples_for_subject(s)
+            .take(MAX_FOCUS_TRIPLES)
+            .map(|t| ContextTriple {
+                p: t.predicate.as_str().to_string(),
+                o: TermDto::from_term(t.object),
+            })
+            .collect();
+        triples.sort_by(|a, b| a.p.cmp(&b.p).then_with(|| a.o.v.cmp(&b.o.v)));
+        focus.insert(key, triples);
+    }
 }
 
 /// Validate `data` against `shapes` with the built-in engine, putting the
@@ -658,6 +744,8 @@ pub fn build_report(
         sparql_endpoint: None,
         validation: None,
         report_turtle: None,
+        coverage: None,
+        coverage_error: None,
     })
 }
 
