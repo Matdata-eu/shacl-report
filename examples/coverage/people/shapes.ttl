@@ -1,0 +1,138 @@
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <http://example.org/people#> .
+
+# People, employees and organisations. Shows: subclass targeting, a nested
+# address shape (reached, not targeted), an inverse path, a SPARQL
+# constraint, a property shape without constraints, a closed shape, a typo
+# in a path, a shape whose class has no instances, and a subclass triple that
+# only lives here in the shapes graph.
+
+ex:PersonShape a sh:NodeShape ;
+    sh:targetClass ex:Person ;
+    sh:property [
+        sh:path ex:name ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:maxLength 200 ;
+    ] ;
+    sh:property [
+        sh:path ex:birthDate ;
+        sh:datatype xsd:date ;
+        sh:minInclusive "1900-01-01"^^xsd:date ;
+    ] ;
+    sh:property [
+        sh:path ex:email ;
+        sh:pattern "^[^@]+@[^@]+$" ;
+    ] ;
+    sh:property [
+        sh:path ex:address ;
+        sh:maxCount 1 ;
+        sh:class ex:Address ;
+        sh:node ex:AddressShape ;
+    ] ;
+    # Only counts the contact points; nothing looks inside them.
+    sh:property [
+        sh:path ex:contactPoint ;
+        sh:minCount 1 ;
+    ] ;
+    # Documentation only: a path without constraints checks nothing.
+    sh:property [
+        sh:path ex:knows ;
+        sh:name "Knows" ;
+    ] ;
+    # Typo: the data uses ex:address.
+    sh:property [
+        sh:path ex:adress ;
+        sh:maxCount 1 ;
+    ] .
+
+ex:EmployeeShape a sh:NodeShape ;
+    sh:targetClass ex:Employee ;
+    sh:property [
+        sh:path ex:employeeId ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:pattern "^E[0-9]{6}$" ;
+    ] ;
+    sh:property [
+        sh:path ex:startDate ;
+        sh:datatype xsd:date ;
+        sh:lessThan ex:endDate ;
+    ] ;
+    sh:property [
+        sh:path ex:endDate ;
+        sh:datatype xsd:date ;
+    ] ;
+    sh:sparql [
+        sh:message "Salary must be positive" ;
+        sh:prefixes ex: ;
+        sh:select """
+            SELECT $this ?value WHERE {
+                $this ex:salary ?value .
+                FILTER (?value <= 0)
+            }""" ;
+    ] .
+
+ex: sh:declare [ sh:prefix "ex" ; sh:namespace "http://example.org/people#"^^xsd:anyURI ] .
+
+ex:OrganisationShape a sh:NodeShape ;
+    sh:targetClass ex:Organisation ;
+    sh:property [
+        sh:path ex:legalName ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+    ] ;
+    sh:property [
+        sh:path ex:sector ;
+        sh:in ( ex:Public ex:Private ex:NonProfit ) ;
+    ] ;
+    # Every organisation needs at least one employee: covers ex:worksFor
+    # triples from the side of the organisation.
+    sh:property [
+        sh:path [ sh:inversePath ex:worksFor ] ;
+        sh:minCount 1 ;
+    ] .
+
+ex:AddressShape a sh:NodeShape ;
+    sh:property [
+        sh:path ex:street ;
+        sh:minCount 1 ;
+        sh:maxLength 120 ;
+    ] ;
+    sh:property [
+        sh:path ex:postalCode ;
+        sh:or (
+            [ sh:pattern "^[0-9]{4}$" ]
+            [ sh:pattern "^[0-9]{4} ?[A-Z]{2}$" ]
+        ) ;
+    ] ;
+    sh:property [
+        sh:path ex:country ;
+        sh:minCount 1 ;
+        sh:in ( "BE" "NL" "LU" ) ;
+    ] .
+
+ex:VehicleShape a sh:NodeShape ;
+    sh:targetClass ex:Vehicle ;
+    sh:closed true ;
+    sh:ignoredProperties ( <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> rdfs:label ) ;
+    sh:property [
+        sh:path ex:plate ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path ex:registeredOn ;
+        sh:datatype xsd:date ;
+    ] .
+
+# Lives only in the shapes graph, so SHACL does not use it for targeting.
+ex:Car rdfs:subClassOf ex:Vehicle .
+
+# No ex:Truck in the data.
+ex:TruckShape a sh:NodeShape ;
+    sh:targetClass ex:Truck ;
+    sh:property [ sh:path ex:payload ; sh:datatype xsd:decimal ] .

@@ -1,0 +1,100 @@
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:    <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix dct:    <http://purl.org/dc/terms/> .
+@prefix schema: <http://schema.org/> .
+@prefix lib:    <http://example.org/library#> .
+@prefix l:      <http://example.org/library/id/> .
+
+# ---------- ontology (left out of the coverage counts) ----------
+
+<http://example.org/library> a owl:Ontology ;
+    dct:title "Library ontology"@en .
+
+lib:Book a owl:Class ; rdfs:label "Book"@en .
+lib:Ebook a owl:Class ; rdfs:subClassOf lib:Book ; rdfs:label "E-book"@en .
+lib:Member a owl:Class ; rdfs:label "Member"@en .
+lib:Branch a owl:Class ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty lib:openingHours ; owl:minCardinality 1 ] .
+lib:isbn a owl:DatatypeProperty ; rdfs:domain lib:Book ; rdfs:range xsd:string .
+lib:subject a owl:ObjectProperty ; rdfs:range skos:Concept .
+
+# ---------- concepts ----------
+
+l:subjects a skos:ConceptScheme ;
+    skos:prefLabel "Subjects"@en .
+
+l:science a skos:Concept ;
+    skos:inScheme l:subjects ;
+    skos:prefLabel "Science"@en , "Wetenschap"@nl .
+
+l:physics a skos:Concept ;
+    skos:inScheme l:subjects ;
+    skos:prefLabel "Physics"@en ;
+    skos:altLabel "Natuurkunde"@nl ;
+    skos:broader l:science .
+
+l:poetry a skos:Concept ;
+    skos:inScheme l:subjects ;
+    skos:prefLabel "Poetry"@en ;
+    skos:definition "Literature in verse."@en .
+
+# ---------- books ----------
+
+l:book1 a lib:Book , schema:CreativeWork ;
+    dct:title "A Brief History of Time"@en ;
+    dct:creator "Stephen Hawking" ;
+    dct:issued "1988"^^xsd:gYear ;
+    lib:isbn "9780553380163" ;
+    lib:subject l:physics ;
+    lib:pages 212 ;
+    schema:inLanguage "en" ;
+    lib:authors ( l:hawking ) .
+
+l:book2 a lib:Book , schema:CreativeWork ;
+    dct:title "Gedichten"@nl ;
+    dct:creator "Lucebert" ;
+    lib:isbn "978-90-234-1234" ;
+    lib:subject l:poetry ;
+    lib:pages 96 ;
+    schema:inLanguage "nl" ;
+    lib:shelf "P-12" .
+
+l:ebook1 a lib:Ebook , schema:CreativeWork ;
+    dct:title "Cosmos"@en ;
+    lib:isbn "9780345539434" ;
+    lib:subject l:science ;
+    lib:fileFormat "EPUB" ;
+    lib:fileSize 4300000 ;
+    schema:inLanguage "en" ;
+    lib:authors ( l:sagan l:druyan ) .
+
+l:magazine1 a schema:CreativeWork , schema:Periodical ;
+    dct:title "New Scientist, issue 3400"@en ;
+    schema:inLanguage "en" ;
+    schema:issueNumber 3400 .
+
+# ---------- people: untyped, and members (shape turned off) ----------
+
+l:hawking rdfs:label "Stephen Hawking" ; schema:birthDate "1942-01-08"^^xsd:date .
+l:sagan rdfs:label "Carl Sagan" .
+l:druyan rdfs:label "Ann Druyan" .
+
+l:member1 a lib:Member ; lib:cardNumber "M-0001" ; schema:email "an@example.org" .
+l:member2 a lib:Member ; lib:cardNumber "M-0002" .
+
+# ---------- loans: targeted by what they have (sh:targetSubjectsOf) ----------
+
+l:loan1 lib:lender l:member1 ; lib:item l:book1 ;
+    lib:dueDate "2026-11-01"^^xsd:date ; lib:returnedOn "2026-10-20"^^xsd:date .
+l:loan2 lib:lender l:member2 ; lib:item l:ebook1 ;
+    lib:dueDate "2026-10-01"^^xsd:date ; lib:reminderSent true .
+l:loan3 a lib:Loan ; lib:item l:magazine1 ; lib:dueDate "2026-12-01"^^xsd:date .
+
+# ---------- branches: two are named with sh:targetNode ----------
+
+l:mainBranch a lib:Branch ; rdfs:label "Main branch"@en ; lib:openingHours "Mo-Sa 09:00-18:00" .
+l:northBranch a lib:Branch ; rdfs:label "North branch"@en ; lib:openingHours "Tu-Sa 10:00-17:00" .
+l:southBranch a lib:Branch ; rdfs:label "South branch"@en ; lib:openingHours "We 14:00-18:00" .

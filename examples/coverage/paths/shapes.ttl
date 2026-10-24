@@ -1,0 +1,106 @@
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ex:   <http://example.org/org#> .
+
+# An organisation chart and its projects. Every kind of SHACL property path,
+# and every way a shape reaches a resource that is not targeted itself.
+
+ex:EmployeeShape a sh:NodeShape ;
+    sh:targetClass ex:Employee ;
+    sh:property [
+        sh:path ex:name ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+    ] ;
+    # Sequence path: the department's site must be known. Covers the
+    # ex:memberOf triple of the employee and the ex:site triple of the
+    # department (an intermediate step).
+    sh:property [
+        sh:path ( ex:memberOf ex:site ) ;
+        sh:minCount 1 ;
+    ] ;
+    # Alternative path: a phone or a mobile number.
+    sh:property [
+        sh:path [ sh:alternativePath ( ex:phone ex:mobile ) ] ;
+        sh:minCount 1 ;
+        sh:pattern "^\\+[0-9 ]+$" ;
+    ] ;
+    # Recursive: whoever you report to is an employee too. Follows the chain
+    # through the data with a work queue, not recursion.
+    sh:property [
+        sh:path ex:reportsTo ;
+        sh:maxCount 1 ;
+        sh:node ex:EmployeeShape ;
+    ] ;
+    # Zero-or-one path: the employee or their deputy has a badge.
+    sh:property [
+        sh:path [ sh:zeroOrOnePath ex:deputy ] ;
+        sh:class ex:Employee ;
+    ] ;
+    # Exactly one of: an email, or a postal address (sh:xone on the node).
+    sh:xone (
+        [ sh:path ex:email ; sh:minCount 1 ]
+        [ sh:path ex:postalAddress ; sh:minCount 1 ]
+    ) .
+
+ex:DepartmentShape a sh:NodeShape ;
+    sh:targetClass ex:Department ;
+    sh:property [
+        sh:path ex:label ;
+        sh:minCount 1 ;
+        sh:uniqueLang true ;
+    ] ;
+    # One-or-more path: every department rolls up to a company.
+    sh:property [
+        sh:path [ sh:oneOrMorePath ex:partOf ] ;
+        sh:qualifiedValueShape [ sh:class ex:Company ] ;
+        sh:qualifiedMinCount 1 ;
+    ] ;
+    # Inverse path: at most one head per department. Covers the ex:heads
+    # triples of the employees.
+    sh:property [
+        sh:path [ sh:inversePath ex:heads ] ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path ex:site ;
+        sh:in ( ex:Brussels ex:Ghent ex:Antwerp ) ;
+    ] .
+
+ex:ProjectShape a sh:NodeShape ;
+    sh:targetSubjectsOf ex:budget ;
+    sh:property [
+        sh:path ex:budget ;
+        sh:datatype xsd:decimal ;
+        sh:minExclusive 0 ;
+    ] ;
+    # Nested property shapes on a property shape: the milestones are reached
+    # and their due dates checked, without a node shape of their own.
+    sh:property [
+        sh:path ex:milestone ;
+        sh:minCount 1 ;
+        sh:property [
+            sh:path ex:due ;
+            sh:datatype xsd:date ;
+            sh:minCount 1 ;
+        ] ;
+    ] ;
+    # The steps are an RDF list. The path walks the list cells (left out of
+    # the counts) to the steps, which a nested shape then checks.
+    sh:property [
+        sh:path ( ex:steps [ sh:zeroOrMorePath rdf:rest ] rdf:first ) ;
+        sh:node ex:StepShape ;
+    ] ;
+    # sh:not: a project may not be its own sub-project.
+    sh:property [
+        sh:path ex:subProjectOf ;
+        sh:not [ sh:hasValue ex:root ] ;
+    ] .
+
+ex:StepShape a sh:NodeShape ;
+    sh:property [
+        sh:path ex:title ;
+        sh:minCount 1 ;
+        sh:maxLength 80 ;
+    ] .

@@ -1,0 +1,131 @@
+# The same catalogue, with a new property (shop:giftWrap) on the books that
+# no rule checks yet.
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix schema: <http://schema.org/> .
+@prefix shop:   <http://example.org/shop#> .
+@prefix p:      <http://example.org/shop/product/> .
+
+
+p:000 a schema:Product ;
+    schema:sku "SKU-10000" ;
+    schema:name "Atlas" ;
+    schema:category shop:Books ;
+    shop:giftWrap true ;
+    schema:offers [
+        a schema:Offer ;
+        schema:price 9.95 ;
+        schema:priceCurrency "EUR" ;
+        schema:validFrom "2026-01-01"^^xsd:date ;
+        schema:validThrough "2026-12-31"^^xsd:date
+    ] .
+
+p:001 a schema:Product ;
+    schema:sku "SKU-10001" ;
+    schema:name "Chess set" ;
+    schema:category shop:Games ;
+    schema:offers [
+        a schema:Offer ;
+        schema:price 12.95 ;
+        schema:priceCurrency "EUR" ;
+        schema:validFrom "2026-01-01"^^xsd:date ;
+        schema:validThrough "2026-12-31"^^xsd:date
+    ] .
+
+p:002 a schema:Product ;
+    schema:sku "SKU-10002" ;
+    schema:name "Rake" ;
+    schema:category shop:Garden ;
+    schema:offers [
+        a schema:Offer ;
+        schema:price 15.95 ;
+        schema:priceCurrency "EUR" ;
+        schema:validFrom "2026-01-01"^^xsd:date ;
+        schema:validThrough "2026-12-31"^^xsd:date
+    ] .
+
+p:003 a schema:Product ;
+    schema:sku "SKU-10003" ;
+    schema:name "Novel" ;
+    schema:category shop:Books ;
+    shop:giftWrap true ;
+    schema:offers [
+        a schema:Offer ;
+        schema:price 18.95 ;
+        schema:priceCurrency "EUR" ;
+        schema:validFrom "2026-01-01"^^xsd:date ;
+        schema:validThrough "2026-12-31"^^xsd:date
+    ] .
+
+p:004 a schema:Product ;
+    schema:sku "SKU-10004" ;
+    schema:name "Puzzle" ;
+    schema:category shop:Games ;
+    schema:offers [
+        a schema:Offer ;
+        schema:price 21.95 ;
+        schema:priceCurrency "EUR" ;
+        schema:validFrom "2026-01-01"^^xsd:date ;
+        schema:validThrough "2026-12-31"^^xsd:date
+    ] .
+
+p:005 a schema:Product ;
+    schema:sku "SKU-10005" ;
+    schema:name "Hose" ;
+    schema:category shop:Garden ;
+    schema:offers [
+        a schema:Offer ;
+        schema:price 24.95 ;
+        schema:priceCurrency "EUR" ;
+        schema:validFrom "2026-01-01"^^xsd:date ;
+        schema:validThrough "2026-12-31"^^xsd:date
+    ] .
+
+p:006 a schema:Product ;
+    schema:sku "SKU-10006" ;
+    schema:name "Cookbook" ;
+    schema:category shop:Books ;
+    shop:giftWrap true ;
+    schema:offers [
+        a schema:Offer ;
+        schema:price 27.95 ;
+        schema:priceCurrency "EUR" ;
+        schema:validFrom "2026-01-01"^^xsd:date ;
+        schema:validThrough "2026-12-31"^^xsd:date
+    ] .
+
+p:007 a schema:Product ;
+    schema:sku "SKU-10007" ;
+    schema:name "Card game" ;
+    schema:category shop:Games ;
+    schema:offers [
+        a schema:Offer ;
+        schema:price 30.95 ;
+        schema:priceCurrency "EUR" ;
+        schema:validFrom "2026-01-01"^^xsd:date ;
+        schema:validThrough "2026-12-31"^^xsd:date
+    ] .
+
+p:008 a schema:Product ;
+    schema:sku "SKU-10008" ;
+    schema:name "Shovel" ;
+    schema:category shop:Garden ;
+    schema:offers [
+        a schema:Offer ;
+        schema:price 33.95 ;
+        schema:priceCurrency "EUR" ;
+        schema:validFrom "2026-01-01"^^xsd:date ;
+        schema:validThrough "2026-12-31"^^xsd:date
+    ] .
+
+p:009 a schema:Product ;
+    schema:sku "SKU-10009" ;
+    schema:name "Poetry" ;
+    schema:category shop:Books ;
+    shop:giftWrap true ;
+    schema:offers [
+        a schema:Offer ;
+        schema:price 36.95 ;
+        schema:priceCurrency "EUR" ;
+        schema:validFrom "2026-01-01"^^xsd:date ;
+        schema:validThrough "2026-12-31"^^xsd:date
+    ] .
